@@ -62,6 +62,14 @@ export const productUpdateSchema = z.object({
 
 export const orderStatusSchema = z.enum(ORDER_STATUSES);
 
+/** Add to cart from the product page: 1..99 of an existing variant (stock is checked on the server). */
+export const addToCartSchema = z.object({
+  variantId: z.string({ error: "variant" }).min(1, "variant"),
+  quantity: z
+    .union([z.number(), z.string().trim().regex(/^\d+$/, "quantity").transform(Number)], { error: "quantity" })
+    .pipe(z.number().int().min(1, "quantity").max(99, "quantity")),
+});
+
 /** Cart line update — from the stepper (number) or the no-JS form (string). 0 removes the line. */
 export const cartLineSchema = z.object({
   variantId: z.string().min(1),
@@ -95,6 +103,8 @@ const deErrors = {
   stock: "Ganze Zahl ab 0.",
   status: "Ungültiger Status.",
   invalid: "Ungültiger Wert.",
+  quantity: "Bitte eine Menge von 1 bis 99 wählen.",
+  variant: "Diese Variante ist nicht verfügbar.",
 };
 
 export type ErrorCode = keyof typeof deErrors;
@@ -114,6 +124,8 @@ const messages: Record<Locale, Record<ErrorCode, string>> = {
     stock: "Nombre entier à partir de 0.",
     status: "Statut non valide.",
     invalid: "Valeur non valide.",
+    quantity: "Veuillez choisir une quantité de 1 à 99.",
+    variant: "Cette variante n'est pas disponible.",
   },
   it: {
     required: "Campo obbligatorio.",
@@ -127,6 +139,8 @@ const messages: Record<Locale, Record<ErrorCode, string>> = {
     stock: "Numero intero da 0.",
     status: "Stato non valido.",
     invalid: "Valore non valido.",
+    quantity: "Scegli una quantità da 1 a 99.",
+    variant: "Questa variante non è disponibile.",
   },
   en: {
     required: "Required.",
@@ -140,6 +154,8 @@ const messages: Record<Locale, Record<ErrorCode, string>> = {
     stock: "Whole number from 0.",
     status: "Invalid status.",
     invalid: "Invalid value.",
+    quantity: "Please choose a quantity from 1 to 99.",
+    variant: "This variant is not available.",
   },
 };
 

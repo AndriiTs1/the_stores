@@ -115,7 +115,7 @@ export function CheckoutForm({
             label={labels.email}
             type="email"
             autoComplete="email"
-            required
+            aria-required
             reg={register("email")}
           />
           <TextField {...field("phone")} label={labels.phone} type="tel" autoComplete="tel" reg={register("phone")} />
@@ -125,7 +125,7 @@ export function CheckoutForm({
       <section className="space-y-3">
         <h2 className="font-semibold">{labels.shipping}</h2>
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
-          <TextField {...field("name")} label={labels.name} autoComplete="name" required reg={register("name")} />
+          <TextField {...field("name")} label={labels.name} autoComplete="name" aria-required reg={register("name")} />
           <div className="min-w-0">
             <label htmlFor={field("country").id} className="label">
               {labels.country}
@@ -156,7 +156,7 @@ export function CheckoutForm({
             className="sm:col-span-2 lg:col-span-1"
             label={labels.address}
             autoComplete="street-address"
-            required
+            aria-required
             reg={register("street")}
           />
           <TextField
@@ -164,15 +164,14 @@ export function CheckoutForm({
             label={labels.zip}
             autoComplete="postal-code"
             inputMode="numeric"
-            maxLength={4}
-            required
+            aria-required
             reg={register("zip")}
           />
           <TextField
             {...field("city")}
             label={labels.city}
             autoComplete="address-level2"
-            required
+            aria-required
             reg={register("city")}
           />
         </div>

@@ -8,22 +8,34 @@ import { inventoryInclude, onlineStock } from "@/lib/inventory";
 import { createPendingOrder, markOrderPaid, OutOfStockError } from "@/lib/orders";
 import { createCheckoutSession, getStripe } from "@/lib/payments";
 import { getBase, getStoreAndLocale } from "@/lib/tenant";
-import { cartLineSchema, checkoutSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
+import { addToCartSchema, cartLineSchema, checkoutSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
 
-export async function addToCart(site: string, locale: string, formData: FormData) {
+export type AddToCartState = { error?: string };
+
+/** Product page form (useActionState): validates with addToCartSchema, returns an error code or redirects to the cart. */
+export async function addToCart(
+  site: string,
+  locale: string,
+  _prev: AddToCartState,
+  formData: FormData,
+): Promise<AddToCartState> {
   const { store } = await getStoreAndLocale(site, locale);
-  const variantId = String(formData.get("variantId") ?? "");
-  const qty = Math.max(1, Math.min(99, Number(formData.get("quantity") ?? 1) || 1));
+  const parsed = addToCartSchema.safeParse({
+    variantId: formData.get("variantId"),
+    quantity: formData.get("quantity"),
+  });
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "invalid" };
+  const { variantId, quantity } = parsed.data;
 
   const variant = await findVariant(store.id, variantId);
-  if (!variant) throw new Error("Unknown variant");
+  const max = variant ? Math.min(99, onlineStock(variant.inventory)) : 0;
+  if (!variant || max === 0) return { error: "variant" };
 
   // Same variant added again: quantities add up, capped by what can be sold online.
-  const max = Math.min(99, onlineStock(variant.inventory));
   const cart = await readCart(store.id);
   const existing = cart.find((e) => e.v === variantId);
-  if (existing) existing.q = Math.min(max, existing.q + qty);
-  else if (max > 0) cart.push({ v: variantId, q: Math.min(max, qty) });
+  if (existing) existing.q = Math.min(max, existing.q + quantity);
+  else cart.push({ v: variantId, q: Math.min(max, quantity) });
   await writeCart(store.id, cart);
 
   redirect(`${await getBase()}/${locale}/cart`);

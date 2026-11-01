@@ -75,7 +75,16 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             optionNames={product.optionNames}
             optionLabels={Object.fromEntries(product.optionNames.map((n) => [n, optionLabel(n, d)]))}
             valueLabels={valueLabels}
-            labels={{ addToCart: d.addToCart, soldOut: d.soldOut, inStock: d.inStock, quantity: d.quantity }}
+            labels={{
+              addToCart: d.addToCart,
+              soldOut: d.soldOut,
+              inStock: d.inStock,
+              quantity: d.quantity,
+              decrease: d.decrease,
+              increase: d.increase,
+              maxAvailable: d.maxAvailable,
+            }}
+            locale={locale}
             action={addToCart.bind(null, site, locale)}
           />
         </div>

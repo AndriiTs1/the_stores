@@ -1,6 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
+import { QuantityStepper } from "@/components/quantity-stepper";
+import { errorText } from "@/lib/validation";
+import type { AddToCartState } from "../../actions";
 
 export type PickerVariant = {
   id: string;
@@ -10,7 +13,15 @@ export type PickerVariant = {
   stock: number;
 };
 
-type Labels = { addToCart: string; soldOut: string; inStock: string; quantity: string };
+type Labels = {
+  addToCart: string;
+  soldOut: string;
+  inStock: string;
+  quantity: string;
+  decrease: string;
+  increase: string;
+  maxAvailable: string;
+};
 
 export function VariantPicker({
   initialVariantId,
@@ -19,6 +30,7 @@ export function VariantPicker({
   optionLabels,
   valueLabels,
   labels,
+  locale,
   action,
 }: {
   /** From ?v= — keeps the chosen size/colour across a language switch or reload. */
@@ -29,8 +41,10 @@ export function VariantPicker({
   /** option name → stored value → label in the page language */
   valueLabels: Record<string, Record<string, string>>;
   labels: Labels;
-  action: (formData: FormData) => void;
+  locale: string;
+  action: (state: AddToCartState, formData: FormData) => Promise<AddToCartState>;
 }) {
+  const [state, formAction, isPending] = useActionState(action, {});
   // Start on the variant from the URL, else the first one in stock.
   const initial = variants.find((v) => v.id === initialVariantId) ?? variants.find((v) => v.stock > 0) ?? variants[0];
   const [selected, setSelected] = useState<Record<string, string>>(initial?.options ?? {});
@@ -41,6 +55,11 @@ export function VariantPicker({
   );
 
   const current = variants.find((v) => optionNames.every((n) => v.options[n] === selected[n]));
+  const max = Math.min(99, current?.stock ?? 0);
+  const soldOut = !current || max === 0;
+  // Chosen quantity; switching to a variant with less stock caps it there.
+  const [wanted, setWanted] = useState(1);
+  const quantity = Math.max(1, Math.min(wanted, max || 1));
 
   function select(name: string, value: string) {
     const next = { ...selected, [name]: value };
@@ -64,7 +83,7 @@ export function VariantPicker({
   }
 
   return (
-    <form action={action} className="space-y-6">
+    <form action={formAction} noValidate className="space-y-6">
       <div>
         <p className="font-display text-2xl font-bold tabular-nums">
           <span className={current?.compareAt ? "text-accent" : ""}>{current?.price}</span>
@@ -103,21 +122,28 @@ export function VariantPicker({
 
       <input type="hidden" name="variantId" value={current?.id ?? ""} />
 
-      <div className="flex items-end gap-3">
-        <label className="w-20 shrink-0">
-          <span className="label">{labels.quantity}</span>
-          <input
-            className="input"
-            type="number"
-            name="quantity"
-            min={1}
-            max={Math.max(1, Math.min(99, current?.stock ?? 1))}
-            defaultValue={1}
+      <div>
+        <span className="label">{labels.quantity}</span>
+        <div className="flex items-start gap-3">
+          <QuantityStepper
+            value={quantity}
+            max={max}
+            disabled={soldOut}
+            emptyFallback={1}
+            invalid={!!state.error}
+            describedBy={state.error ? "add-to-cart-error" : undefined}
+            labels={labels}
+            onChange={(n) => setWanted(n)}
           />
-        </label>
-        <button className="btn btn-accent min-w-0 flex-1" disabled={!current || current.stock === 0}>
-          <span className="truncate">{current && current.stock > 0 ? labels.addToCart : labels.soldOut}</span>
-        </button>
+          <button className="btn btn-accent h-10 min-w-0 flex-1 py-0" disabled={soldOut || isPending}>
+            <span className="truncate">{soldOut ? labels.soldOut : labels.addToCart}</span>
+          </button>
+        </div>
+        {state.error && (
+          <p id="add-to-cart-error" className="field-error">
+            {errorText(state.error, locale)}
+          </p>
+        )}
       </div>
 
       {current && current.stock > 0 && (

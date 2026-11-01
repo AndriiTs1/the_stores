@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { startTransition, useRef, useState } from "react";
 import { useCartCountOverride } from "@/components/cart-count";
+import { QuantityStepper } from "@/components/quantity-stepper";
 import { OrderSummary } from "@/components/order-summary";
 import type { CartLine } from "@/lib/cart";
 import { optionLabel, type Dict } from "@/lib/i18n";
@@ -168,9 +169,6 @@ function CartRow({
   onChange: (quantity: number, delay: number) => void;
 }) {
   const q = line.quantity;
-  const max = maxFor(line);
-  // While typing, the field shows the raw text; otherwise the current quantity.
-  const [text, setText] = useState<string | null>(null);
 
   return (
     <li className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto_8rem]">
@@ -195,6 +193,7 @@ function CartRow({
             e.preventDefault();
             onChange(0, 0);
           }}
+          noValidate
         >
           <input type="hidden" name="variantId" value={line.variantId} />
           <button name="set" value="0" className="mt-1 text-xs text-muted underline hover:text-foreground">
@@ -203,74 +202,20 @@ function CartRow({
         </form>
       </div>
 
-      {/* A real form, so the cart also works without JavaScript; with JS, submits are handled here. */}
-      <form
-        action={formAction}
-        onSubmit={(e) => {
-          e.preventDefault();
-          const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
-          if (submitter?.name === "set") {
-            const value = Number(submitter.value);
-            onChange(value, value === 0 ? 0 : BUTTON_DELAY);
-          } else {
-            const n = Number(text);
-            if (n >= 1) onChange(n, 0); // Enter: send right away
-            setText(null);
-          }
-        }}
-        className="w-32"
-      >
+      {/* A real form, so the cart also works without JavaScript; with JS the stepper handles everything. */}
+      <form action={formAction} onSubmit={(e) => e.preventDefault()} noValidate>
         <input type="hidden" name="variantId" value={line.variantId} />
-        {/* First submit button = what Enter in the field triggers (not "−"). */}
+        {/* First submit button = what Enter in the field triggers without JS (not "−"). */}
         <button type="submit" tabIndex={-1} aria-hidden className="sr-only">
           {d.update}
         </button>
-        <div className="flex h-10 items-stretch overflow-hidden rounded-md border border-line">
-          <button
-            name="set"
-            value={q - 1}
-            disabled={q <= 1}
-            aria-label={d.decrease}
-            className="w-10 shrink-0 text-lg leading-none hover:bg-surface disabled:text-line disabled:hover:bg-transparent"
-          >
-            −
-          </button>
-          <input
-            name="quantity"
-            inputMode="numeric"
-            autoComplete="off"
-            aria-label={d.quantity}
-            value={text ?? String(q)}
-            onFocus={(e) => e.currentTarget.select()}
-            onChange={(e) => {
-              const raw = e.target.value.replace(/\D/g, "").slice(0, 3);
-              const n = Number(raw);
-              // Above the limit: snap to it right away. Empty or 0: wait (blur restores the last valid value).
-              if (raw !== "" && n > max) {
-                setText(String(max));
-                onChange(max, TYPING_DELAY);
-              } else {
-                setText(raw);
-                if (n >= 1) onChange(n, TYPING_DELAY);
-              }
-            }}
-            onBlur={() => setText(null)}
-            className="w-12 min-w-0 border-x border-line bg-background text-center text-sm tabular-nums outline-none focus:bg-surface"
-          />
-          <button
-            name="set"
-            value={q + 1}
-            disabled={q >= max}
-            aria-label={d.increase}
-            className="w-10 shrink-0 text-lg leading-none hover:bg-surface disabled:text-line disabled:hover:bg-transparent"
-          >
-            +
-          </button>
-        </div>
-        {/* Fixed-height slot: the hint never changes the row height. */}
-        <p aria-live="polite" className="mt-1 h-4 truncate text-center text-[11px] text-muted">
-          {q >= max && line.available <= 99 ? d.maxAvailable.replace("{n}", String(max)) : ""}
-        </p>
+        <QuantityStepper
+          value={q}
+          max={Math.min(99, line.available)}
+          buttonName="set"
+          labels={{ decrease: d.decrease, increase: d.increase, quantity: d.quantity, maxAvailable: d.maxAvailable }}
+          onChange={(n, kind) => onChange(n, kind === "step" ? BUTTON_DELAY : kind === "type" ? TYPING_DELAY : 0)}
+        />
       </form>
 
       <p className="num h-10 font-semibold leading-10">{total}</p>

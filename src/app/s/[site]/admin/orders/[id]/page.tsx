@@ -75,7 +75,7 @@ export default async function AdminOrder({ params }: PageProps<"/s/[site]/admin/
             <p className="text-muted">
               {order.paymentProvider ?? "—"} {order.paidAt && `· ${order.paidAt.toLocaleString("de-CH")}`}
             </p>
-            <form action={setOrderStatus.bind(null, site, order.id)} className="mt-4 flex gap-2">
+            <form action={setOrderStatus.bind(null, site, order.id)} noValidate className="mt-4 flex gap-2">
               <Select
                 name="status"
                 aria-label="Order status"
