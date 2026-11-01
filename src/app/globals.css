@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+/* Store theme tokens — later these come from each store's settings. */
+:root {
+  --background: #ffffff;
+  --foreground: #111111;
+  --muted: #6b6b6b;
+  --line: #e6e6e6;
+  --surface: #f5f5f4;
+  --accent: #c8102e;
+  --accent-ink: #ffffff;
+  --ring: var(--foreground); /* focus outline */
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-surface: var(--surface);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+}
+
+/*
+ * Font tokens. --font-display / --font-sans are set by next/font on <html> (src/app/fonts.ts);
+ * that unlayered declaration wins over this theme layer, so utilities resolve to the loaded fonts.
+ */
+@theme {
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+}
+
+/* Appearing/disappearing scrollbar must not shift the page. */
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Display font only for headings (and the logo / product price via `font-display`). */
+h1,
+h2 {
+  font-family: var(--font-display), var(--font-sans), sans-serif;
+  letter-spacing: -0.02em;
+}
+
+/*
+ * One focus style everywhere: no browser default ring; a 2px outline for keyboard focus only
+ * (:focus-visible — a mouse click on a link or button shows nothing). Outlines follow border-radius.
+ */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus {
+  outline: none;
+}
+:where(a, button, input, select, textarea, summary, [tabindex]):not([role="listbox"]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.btn {
+  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md bg-foreground px-5 py-3 text-sm font-semibold uppercase tracking-wide text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
+}
+.btn-accent {
+  @apply bg-accent text-accent-ink;
+}
+.btn-ghost {
+  @apply bg-transparent text-foreground ring-1 ring-line hover:bg-surface;
+}
+.input {
+  @apply h-10 w-full min-w-0 rounded-md border border-line bg-background px-3 text-sm focus:border-foreground aria-[invalid=true]:border-accent;
+}
+/* One line in every language, so a long French label never changes the form height. */
+.label {
+  @apply mb-1 block truncate text-[11px] font-medium uppercase tracking-wide text-muted;
+}
+.field-error {
+  @apply mt-1 text-xs text-accent;
+}
+/* Money: same digit widths, right-aligned, so switching locale doesn't move columns. */
+@utility num {
+  @apply text-right whitespace-nowrap tabular-nums;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Shared content width for storefront and admin. */
+.container-page {
+  @apply mx-auto w-full max-w-screen-2xl px-4 sm:px-6 lg:px-10;
+}
+
+/* Language picker: grows out of its button (origin set by Radix on the side of the trigger). */
+@keyframes picker-in {
+  from {
+    opacity: 0;
+    transform: scaleY(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}

@@ -1,0 +1,212 @@
+// store — multi-tenant e-commerce platform
+// Every business row carries storeId: one database, many shops.
+// Money is stored as integer Rappen (1 CHF = 100), prices are VAT-inclusive (B2C).
+// Localized text is stored as JSON: { "de": "...", "fr": "...", "it": "...", "en": "..." }.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum StaffRole {
+  OWNER
+  STAFF
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+enum LocationType {
+  WAREHOUSE
+  RETAIL
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  FULFILLED
+  CANCELLED
+  REFUNDED
+}
+
+model Store {
+  id               String   @id @default(cuid())
+  slug             String   @unique
+  name             String
+  defaultLocale    String   @default("de")
+  locales          String[] @default(["de", "fr", "it", "en"])
+  currency         String   @default("CHF")
+  vatRateBp        Int      @default(810) // 8.1 % in basis points
+  shippingFlat     Int      @default(900) // CHF 9.00
+  freeShippingFrom Int?     @default(10000) // free from CHF 100.00
+  contactEmail     String?
+  orderCounter     Int      @default(1000)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  domains    Domain[]
+  staff      StaffUser[]
+  categories Category[]
+  products   Product[]
+  locations  Location[]
+  customers  Customer[]
+  orders     Order[]
+}
+
+model Domain {
+  id        String   @id @default(cuid())
+  host      String   @unique // e.g. "shop.client-domain.ch"
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model StaffUser {
+  id           String    @id @default(cuid())
+  storeId      String
+  store        Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  email        String
+  name         String?
+  passwordHash String?
+  role         StaffRole @default(STAFF)
+  createdAt    DateTime  @default(now())
+
+  @@unique([storeId, email])
+}
+
+model Category {
+  id       String    @id @default(cuid())
+  storeId  String
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  slug     String
+  name     Json // Localized
+  position Int       @default(0)
+  products Product[]
+
+  @@unique([storeId, slug])
+}
+
+model Product {
+  id           String        @id @default(cuid())
+  storeId      String
+  store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  categoryId   String?
+  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  slug         String
+  title        Json // Localized
+  description  Json? // Localized
+  status       ProductStatus @default(DRAFT)
+  images       String[]
+  optionNames  String[] // e.g. ["size", "color"]
+  // Translations of option values; variants store the German value.
+  // e.g. { "color": { "Schwarz": { "fr": "Noir", "it": "Nero", "en": "Black" } } }
+  optionValues Json?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  variants ProductVariant[]
+
+  @@unique([storeId, slug])
+  @@index([storeId, status])
+}
+
+model ProductVariant {
+  id             String   @id @default(cuid())
+  productId      String
+  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku            String
+  price          Int // Rappen, VAT-inclusive
+  compareAtPrice Int?
+  options        Json // e.g. { "size": "M", "color": "Black" }
+  position       Int      @default(0)
+  createdAt      DateTime @default(now())
+
+  inventory  InventoryLevel[]
+  orderItems OrderItem[]
+
+  @@index([productId])
+}
+
+// Online warehouse now, FoxTown retail store later — same stock model.
+model Location {
+  id          String           @id @default(cuid())
+  storeId     String
+  store       Store            @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  name        String
+  type        LocationType     @default(WAREHOUSE)
+  sellsOnline Boolean          @default(true)
+  inventory   InventoryLevel[]
+}
+
+model InventoryLevel {
+  id         String         @id @default(cuid())
+  variantId  String
+  variant    ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  locationId String
+  location   Location       @relation(fields: [locationId], references: [id], onDelete: Cascade)
+  quantity   Int            @default(0)
+
+  @@unique([variantId, locationId])
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  storeId   String
+  store     Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  email     String
+  name      String?
+  phone     String?
+  createdAt DateTime @default(now())
+  orders    Order[]
+
+  @@unique([storeId, email])
+}
+
+model Order {
+  id              String      @id @default(cuid())
+  storeId         String
+  store           Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  number          Int
+  status          OrderStatus @default(PENDING)
+  customerId      String?
+  customer        Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  email           String
+  locale          String
+  currency        String      @default("CHF")
+  subtotal        Int
+  shipping        Int
+  vatAmount       Int // VAT contained in total
+  total           Int
+  shippingAddress Json
+  paymentProvider String? // "stripe" | "test"
+  paymentRef      String?     @unique
+  paidAt          DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  items OrderItem[]
+
+  @@unique([storeId, number])
+  @@index([storeId, status])
+}
+
+model OrderItem {
+  id        String          @id @default(cuid())
+  orderId   String
+  order     Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variantId String?
+  variant   ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  title     String // snapshot at purchase time
+  sku       String
+  options   Json
+  unitPrice Int
+  quantity  Int
+  lineTotal Int
+}
