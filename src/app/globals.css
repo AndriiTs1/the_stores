@@ -60,6 +60,10 @@ h2 {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+/* Quantity stepper: the whole control shows focus (border + ring via :focus-within), not its parts. */
+.stepper :focus-visible {
+  outline: none;
+}
 
 .btn {
   @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md bg-foreground px-5 py-3 text-sm font-semibold uppercase tracking-wide text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
