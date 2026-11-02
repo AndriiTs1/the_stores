@@ -17,7 +17,7 @@ npm run dev
 
 | Адрес | Что это |
 |---|---|
-| http://localhost:3000 | главная платформы |
+| http://localhost:3000 | главная платформы → /de, /fr, /it, /en (по cookie или языку браузера) |
 | http://localhost:3000/platform | список магазинов (пароль админки) |
 | http://localhost:3000/s/demo | магазин по пути (удобно для превью) |
 | http://demo.localhost:3000 | тот же магазин на поддомене (Chrome и Firefox понимают *.localhost) |
