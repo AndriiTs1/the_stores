@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { pickFromAcceptLanguage, switchLocaleHref } from "./locale-path";
+import { chooseLocale, pickFromAcceptLanguage, switchLocaleHref } from "./locale-path";
 
 describe("switchLocaleHref", () => {
   it("replaces the locale segment after /s/<site>", () => {
@@ -43,5 +43,23 @@ describe("pickFromAcceptLanguage", () => {
   it("returns undefined when nothing matches", () => {
     expect(pickFromAcceptLanguage("es,pt;q=0.8", supported)).toBeUndefined();
     expect(pickFromAcceptLanguage(null, supported)).toBeUndefined();
+  });
+});
+
+describe("chooseLocale (platform root redirect)", () => {
+  const base = { cookie: undefined, supported: ["de", "fr", "it", "en"], fallback: "de" };
+  it("takes the browser language, with region tags and weights", () => {
+    expect(chooseLocale({ ...base, acceptLanguage: "fr-CH,fr;q=0.9,de;q=0.8" })).toBe("fr");
+    expect(chooseLocale({ ...base, acceptLanguage: "IT-ch" })).toBe("it");
+    expect(chooseLocale({ ...base, acceptLanguage: "es;q=1,en;q=0.5,de;q=0.4" })).toBe("en");
+  });
+  it("falls back to German when nothing matches or the header is missing", () => {
+    expect(chooseLocale({ ...base, acceptLanguage: "es-ES,pt;q=0.8" })).toBe("de");
+    expect(chooseLocale({ ...base, acceptLanguage: null })).toBe("de");
+    expect(chooseLocale({ ...base, acceptLanguage: "" })).toBe("de");
+  });
+  it("a language picked in the switcher wins; an unknown cookie is ignored", () => {
+    expect(chooseLocale({ ...base, cookie: "it", acceptLanguage: "fr" })).toBe("it");
+    expect(chooseLocale({ ...base, cookie: "xx", acceptLanguage: "fr" })).toBe("fr");
   });
 });

@@ -35,3 +35,15 @@ export function pickFromAcceptLanguage(header: string | null, supported: readonl
     .sort((a, b) => b.q - a.q);
   return ranked.find((x) => supported.includes(x.lang))?.lang;
 }
+
+/** Language for a redirect from a root URL: the remembered choice, else Accept-Language, else `fallback`. */
+export function chooseLocale(input: {
+  cookie: string | undefined;
+  acceptLanguage: string | null;
+  supported: readonly string[];
+  fallback: string;
+}): string {
+  const { cookie, acceptLanguage, supported, fallback } = input;
+  if (cookie && supported.includes(cookie)) return cookie;
+  return pickFromAcceptLanguage(acceptLanguage, supported) ?? fallback;
+}
