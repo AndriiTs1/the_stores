@@ -28,7 +28,10 @@ export default async function PlatformHome({ params }: PageProps<"/[locale]">) {
   return (
     <main className="container-page flex-1 py-16 sm:py-24">
       <p className="text-xs font-semibold uppercase tracking-widest text-accent">{t.eyebrow}</p>
-      <h1 className="mt-3 max-w-2xl font-display text-4xl font-bold tracking-tight sm:text-5xl">{t.heroTitle}</h1>
+      {/* hyphens-auto: long compounds (German) break by syllable on phones instead of overflowing. */}
+      <h1 className="mt-3 max-w-2xl hyphens-auto break-words font-display text-4xl font-bold tracking-tight sm:text-5xl">
+        {t.heroTitle}
+      </h1>
       <p className="mt-4 max-w-xl text-lg text-muted">{t.heroText}</p>
       {/* The demo store offers all four languages (prisma/seed.ts), so it opens in the page language. */}
       <Link href={`/s/${DEMO_STORE_SLUG}/${locale}`} className="btn btn-accent mt-8">
