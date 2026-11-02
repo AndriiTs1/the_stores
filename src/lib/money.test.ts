@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeCart } from "./money";
+import { computeCart, formatMoney } from "./money";
 
 const store = { shippingFlat: 900, freeShippingFrom: 10000, vatRateBp: 810 };
 
@@ -47,5 +47,16 @@ describe("computeCart", () => {
       store,
     );
     expect(t).toMatchObject({ subtotal: 12970, shipping: 0, count: 3 });
+  });
+});
+
+describe("formatMoney", () => {
+  // A no-break space after "CHF", so a price never wraps between currency and amount.
+  it("francs: CHF in front, point decimals, Swiss thousands separator — in every language", () => {
+    for (const locale of ["de", "fr", "it", "en"]) {
+      expect(formatMoney(8990, locale)).toBe("CHF\u00a089.90");
+      expect(formatMoney(108990, locale)).toBe("CHF\u00a01'089.90");
+    }
+    expect(formatMoney(2500, "fr")).toBe("CHF\u00a025.00");
   });
 });
