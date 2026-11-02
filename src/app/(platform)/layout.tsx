@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import "../globals.css";
 import { fontVariables } from "../fonts";
+import { PLATFORM_NAME } from "@/lib/platform";
 
 export const metadata: Metadata = {
-  title: "The Stores",
+  title: PLATFORM_NAME,
   description: "Multi-tenant e-commerce platform for Swiss shops",
 };
 
