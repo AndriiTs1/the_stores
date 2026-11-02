@@ -2,10 +2,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { CollectionBanner } from "@/components/collection-banner";
 import { ProductGrid } from "@/components/product-grid";
+import { TrustStrip } from "@/components/trust-strip";
 import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { getDict, tr } from "@/lib/i18n";
+import { getStripe } from "@/lib/payments";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
+import { trustItems } from "@/lib/trust";
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]">) {
   const { site } = await params;
@@ -104,6 +107,8 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
           </ul>
         </section>
       )}
+
+      <TrustStrip items={trustItems(store, getStripe() != null, d, locale)} label={d.trustLabel} />
     </>
   );
 }
