@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import "../../globals.css";
 import { fontVariables } from "../../fonts";
+import { CurrentYear } from "@/components/current-year";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
 import { isLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { getPlatformDict } from "@/lib/i18n-platform";
@@ -54,9 +55,12 @@ export default async function PlatformLayout({ children, params }: LayoutProps<"
         </header>
         {children}
         <footer className="border-t border-line">
-          <div className="container-page flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-6 text-xs text-muted">
-            <span>{PLATFORM_NAME}</span>
-            <nav className="flex gap-4">
+          {/* Phone: copyright, then the links one per line; from sm: copyright left, links right. */}
+          <div className="container-page flex flex-col gap-3 py-6 text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+            <span>
+              © <CurrentYear fallback={new Date().getFullYear()} /> {PLATFORM_NAME}
+            </span>
+            <nav className="flex flex-col gap-2 sm:flex-row sm:gap-4">
               <Link href={`/${locale}/impressum`} className="hover:text-foreground">
                 {t.impressum}
               </Link>
