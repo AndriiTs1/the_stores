@@ -12,6 +12,11 @@ const de = {
   stockText: "Grössen und Farben mit eigenem Bestand. Ausverkaufte Varianten lassen sich nicht bestellen.",
   ordersTitle: "Bestellungen",
   ordersText: "Warenkorb, Bestellformular und eine Bestellübersicht mit Status im Admin.",
+  draft: "Entwurf",
+  impressum: "Impressum",
+  impressumDraft: "Die Angaben zum Betreiber dieser Website werden hier ergänzt, sobald sie feststehen.",
+  privacy: "Datenschutzerklärung",
+  privacyDraft: "Die Datenschutzerklärung dieser Website wird hier ergänzt, sobald sie feststeht.",
 };
 
 /** Every locale must define exactly the keys of the German dictionary. */
@@ -31,6 +36,11 @@ const dict: Record<Locale, PlatformDict> = {
     stockText: "Tailles et couleurs, chacune avec son stock. Les variantes épuisées ne peuvent pas être commandées.",
     ordersTitle: "Commandes",
     ordersText: "Panier, formulaire de commande et vue d'ensemble des commandes avec leur statut dans l'admin.",
+    draft: "Projet",
+    impressum: "Mentions légales",
+    impressumDraft: "Les informations sur l'exploitant de ce site seront ajoutées ici dès qu'elles seront définies.",
+    privacy: "Déclaration de protection des données",
+    privacyDraft: "La déclaration de protection des données de ce site sera ajoutée ici dès qu'elle sera définie.",
   },
   it: {
     language: "Lingua",
@@ -43,6 +53,11 @@ const dict: Record<Locale, PlatformDict> = {
     stockText: "Taglie e colori, ciascuno con le proprie scorte. Le varianti esaurite non si possono ordinare.",
     ordersTitle: "Ordini",
     ordersText: "Carrello, modulo d'ordine e una panoramica degli ordini con stato nell'admin.",
+    draft: "Bozza",
+    impressum: "Note legali",
+    impressumDraft: "Le informazioni sul gestore di questo sito saranno aggiunte qui non appena definite.",
+    privacy: "Informativa sulla protezione dei dati",
+    privacyDraft: "L'informativa sulla protezione dei dati di questo sito sarà aggiunta qui non appena definita.",
   },
   en: {
     language: "Language",
@@ -55,6 +70,11 @@ const dict: Record<Locale, PlatformDict> = {
     stockText: "Sizes and colours, each with its own stock. Sold-out variants can't be ordered.",
     ordersTitle: "Orders",
     ordersText: "Cart, order form and an order overview with status in the admin.",
+    draft: "Draft",
+    impressum: "Legal notice",
+    impressumDraft: "Details of the operator of this website will be added here once they are final.",
+    privacy: "Privacy policy",
+    privacyDraft: "The privacy policy of this website will be added here once it is final.",
   },
 };
 

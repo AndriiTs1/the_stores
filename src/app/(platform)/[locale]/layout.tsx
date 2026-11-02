@@ -48,6 +48,19 @@ export default async function PlatformLayout({ children, params }: LayoutProps<"
           </div>
         </header>
         {children}
+        <footer className="border-t border-line">
+          <div className="container-page flex flex-wrap items-center justify-between gap-x-6 gap-y-2 py-6 text-xs text-muted">
+            <span>{PLATFORM_NAME}</span>
+            <nav className="flex gap-4">
+              <Link href={`/${locale}/impressum`} className="hover:text-foreground">
+                {t.impressum}
+              </Link>
+              <Link href={`/${locale}/datenschutz`} className="hover:text-foreground">
+                {t.privacy}
+              </Link>
+            </nav>
+          </div>
+        </footer>
       </body>
     </html>
   );
