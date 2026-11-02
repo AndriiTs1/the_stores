@@ -13,6 +13,7 @@ import { getCartCount } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { getDict, tr } from "@/lib/i18n";
 import { formatMoney } from "@/lib/money";
+import { STORE_PAGES } from "@/lib/store-pages";
 import { getBase, getStore, getStoreAndLocale, requestOrigin } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[locale]">) {
@@ -103,9 +104,26 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
 
           <main className="container-page flex-1 py-6 sm:py-8">{children}</main>
 
-          {/* Phones: no footer — the bottom bar is the page end there. VAT stays visible next to prices. */}
-          <footer className="hidden border-t border-line md:block">
-            <div className="container-page flex flex-wrap justify-between gap-2 py-6 text-xs text-muted">
+          <footer className="mt-10 border-t border-line">
+            <div className="container-page grid gap-8 py-8 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              {(["service", "legal"] as const).map((group) => (
+                <nav key={group} aria-label={group === "service" ? d.footerService : d.footerLegal}>
+                  <h2 className="mb-3 font-sans text-xs font-semibold uppercase tracking-wide text-muted">
+                    {group === "service" ? d.footerService : d.footerLegal}
+                  </h2>
+                  <ul className="space-y-2">
+                    {STORE_PAGES.filter((p) => p.group === group).map((p) => (
+                      <li key={p.slug}>
+                        <Link href={`${base}/${locale}/info/${p.slug}`} className="hover:text-accent">
+                          {d[p.title]}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </nav>
+              ))}
+            </div>
+            <div className="container-page flex flex-wrap justify-between gap-2 border-t border-line py-6 text-xs text-muted">
               <span>
                 © {new Date().getFullYear()} {store.name}
               </span>
