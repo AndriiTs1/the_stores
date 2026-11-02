@@ -22,6 +22,7 @@ npm run dev
 | http://localhost:3000/s/demo | магазин по пути (удобно для превью) |
 | http://demo.localhost:3000 | тот же магазин на поддомене (Chrome и Firefox понимают *.localhost) |
 | http://localhost:3000/s/demo/admin | админка (в dev без пароля) |
+| http://localhost:3000/admin/login | вход в админку: адрес магазина → пароль в окне браузера |
 
 Без `STRIPE_SECRET_KEY` магазин работает в **тестовом режиме**: заказ сразу помечается оплаченным.
 

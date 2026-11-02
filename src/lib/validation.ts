@@ -79,6 +79,15 @@ export const cartLineSchema = z.object({
     .pipe(z.number().int().min(0).max(99)),
 });
 
+/** Admin sign-in page: the store's slug ("demo"), as in demo.<root domain> or /s/demo. */
+export const adminLoginSchema = z.object({
+  shop: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .regex(/^[a-z0-9][a-z0-9-]{0,62}$/),
+});
+
 export type FieldErrors = Record<string, string>;
 
 /** First error code per field, keyed by the dotted path ("email", "prices.<id>"). */
