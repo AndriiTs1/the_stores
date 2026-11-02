@@ -7,11 +7,16 @@ import { fontVariables } from "../../fonts";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
 import { isLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { getPlatformDict } from "@/lib/i18n-platform";
-import { PLATFORM_NAME } from "@/lib/platform";
+import { PLATFORM_NAME, platformUrl } from "@/lib/platform";
 
-export const metadata: Metadata = {
-  title: PLATFORM_NAME,
-};
+export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params;
+  return {
+    metadataBase: platformUrl(),
+    title: { default: PLATFORM_NAME, template: `%s · ${PLATFORM_NAME}` },
+    description: getPlatformDict(locale).heroText,
+  };
+}
 
 // One static page per language; any other first segment is a 404.
 export const dynamicParams = false;

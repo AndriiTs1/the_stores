@@ -1,6 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getPlatformDict } from "@/lib/i18n-platform";
-import { DEMO_STORE_SLUG, PLATFORM_NAME } from "@/lib/platform";
+import { DEMO_STORE_SLUG, PLATFORM_NAME, platformAlternates } from "@/lib/platform";
+
+export async function generateMetadata({ params }: PageProps<"/[locale]">): Promise<Metadata> {
+  const { locale } = await params;
+  const t = getPlatformDict(locale);
+  return {
+    title: { absolute: `${PLATFORM_NAME} — ${t.heroTitle}` },
+    description: t.heroText,
+    alternates: platformAlternates(""),
+  };
+}
 
 // Only what the code does today: storefront languages (lib/i18n), variants and stock per location
 // (lib/inventory), cart and order form (lib/cart, lib/orders), orders in the store admin, prices in CHF.
