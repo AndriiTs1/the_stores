@@ -55,11 +55,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
   return (
     <div className="grid gap-8 md:grid-cols-2 md:gap-10 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <div className="space-y-3">
-        <ProductImage src={product.images[0]} title={title} />
+        <ProductImage src={product.images[0]} title={title} sizes="(min-width: 768px) 50vw, 100vw" preload />
         {product.images.length > 1 && (
           <div className="grid grid-cols-4 gap-3">
             {product.images.slice(1).map((src) => (
-              <ProductImage key={src} src={src} title={title} />
+              <ProductImage key={src} src={src} title={title} sizes="(min-width: 768px) 12vw, 25vw" />
             ))}
           </div>
         )}

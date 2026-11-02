@@ -1,9 +1,8 @@
 import Link from "next/link";
-import { ProductImage } from "@/components/product-image";
+import { ProductCard } from "@/components/product-card";
 import { db } from "@/lib/db";
+import { getProductCards, PAGE_SIZE } from "@/lib/catalog";
 import { getDict, tr } from "@/lib/i18n";
-import { inventoryInclude, onlineStock } from "@/lib/inventory";
-import { formatMoney } from "@/lib/money";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]">) {
@@ -19,17 +18,9 @@ export default async function Catalog({ params, searchParams }: PageProps<"/s/[s
   const d = getDict(locale);
   const activeCategory = typeof c === "string" ? c : undefined;
 
-  const [categories, products] = await Promise.all([
+  const [categories, { cards }] = await Promise.all([
     db.category.findMany({ where: { storeId: store.id }, orderBy: { position: "asc" } }),
-    db.product.findMany({
-      where: {
-        storeId: store.id,
-        status: "ACTIVE",
-        ...(activeCategory ? { category: { slug: activeCategory } } : {}),
-      },
-      include: { variants: { include: inventoryInclude } },
-      orderBy: { createdAt: "asc" },
-    }),
+    getProductCards(store.id, locale, activeCategory ? { category: { slug: activeCategory } } : {}, PAGE_SIZE * 8),
   ]);
 
   return (
@@ -47,41 +38,22 @@ export default async function Catalog({ params, searchParams }: PageProps<"/s/[s
         ))}
       </div>
 
-      {products.length === 0 ? (
+      {cards.length === 0 ? (
         <p className="text-muted">{d.noProducts}</p>
       ) : (
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-          {products.map((p) => {
-            const title = tr(p.title, locale);
-            const minPrice = Math.min(...p.variants.map((v) => v.price));
-            const compareAt = p.variants.find((v) => v.price === minPrice)?.compareAtPrice;
-            const soldOut = p.variants.every((v) => onlineStock(v.inventory) === 0);
-            return (
-              <li key={p.id}>
-                <Link href={`${base}/${locale}/p/${p.slug}`} className="group block">
-                  <div className="relative">
-                    <ProductImage src={p.images[0]} title={title} className="transition group-hover:opacity-90" />
-                    {soldOut && (
-                      <span className="absolute left-2 top-2 rounded bg-foreground px-2 py-0.5 text-xs font-semibold text-background">
-                        {d.soldOut}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-3 line-clamp-2 min-h-10 text-sm font-semibold">{title}</p>
-                  <p className="mt-1 text-sm tabular-nums">
-                    <span className={compareAt ? "font-semibold text-accent" : ""}>
-                      {formatMoney(minPrice, locale, store.currency)}
-                    </span>
-                    {compareAt && (
-                      <span className="ml-2 text-muted line-through">
-                        {formatMoney(compareAt, locale, store.currency)}
-                      </span>
-                    )}
-                  </p>
-                </Link>
-              </li>
-            );
-          })}
+        <ul className="grid grid-cols-2 gap-x-3 gap-y-8 md:grid-cols-3 lg:grid-cols-4">
+          {cards.map((card, i) => (
+            <li key={card.id}>
+              <ProductCard
+                card={card}
+                href={`${base}/${locale}/p/${card.slug}`}
+                locale={locale}
+                currency={store.currency}
+                labels={{ soldOut: d.soldOut, sizes: d.sizes }}
+                preload={i < 2}
+              />
+            </li>
+          ))}
         </ul>
       )}
     </>
