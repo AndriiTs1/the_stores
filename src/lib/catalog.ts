@@ -85,3 +85,29 @@ export async function getProductCards(
   });
   return { cards: rows.slice(0, limit).map((p) => toProductCard(p, locale)), hasMore: rows.length > limit };
 }
+
+/** Link for "show more": the same listing with one more page. `params` keeps e.g. the search query. */
+export function moreHref(path: string, limit: number, params: Record<string, string> = {}) {
+  return `${path}?${new URLSearchParams({ ...params, n: String(limit + PAGE_SIZE) })}`;
+}
+
+/** Search query from ?q=: trimmed, at most 100 characters; "" when missing. */
+export function searchQuery(q: unknown): string {
+  return typeof q === "string" ? q.trim().slice(0, 100) : "";
+}
+
+/**
+ * Ids of a store's active products whose title (page language or German) or brand contains `q`,
+ * case-insensitive. LIKE wildcards in `q` are escaped; values are bound parameters.
+ */
+export async function searchProductIds(storeId: string, locale: string, q: string): Promise<string[]> {
+  const pattern = `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
+  const rows = await db.$queryRaw<{ id: string }[]>`
+    SELECT p."id" FROM "Product" p
+    LEFT JOIN "Brand" b ON b."id" = p."brandId"
+    WHERE p."storeId" = ${storeId}
+      AND p."status" = 'ACTIVE'
+      AND (p."title"->>${locale} ILIKE ${pattern} OR p."title"->>'de' ILIKE ${pattern} OR b."name" ILIKE ${pattern})
+    LIMIT 500`;
+  return rows.map((r) => r.id);
+}

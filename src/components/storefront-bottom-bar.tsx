@@ -9,8 +9,8 @@ import { LanguagePicker } from "@/components/language-picker";
 const HINT_MS = 1500;
 
 /**
- * The storefront's phone dock: Home, Search, Favourites, Account, Language.
- * Search / Favourites / Account are placeholders for now: they show "coming soon" for 1.5 s.
+ * The storefront's phone dock: Home, Search (the search page), Favourites, Account, Language.
+ * Favourites / Account are placeholders for now: they show "coming soon" for 1.5 s.
  * Only one popup at a time: opening the language capsule closes the hint (and a press outside the
  * open capsule only closes it, so a hint can't appear on top of it).
  */
@@ -48,6 +48,7 @@ export function StorefrontBottomBar({
   const rest = pathname.startsWith(`${base}/`) ? pathname.slice(base.length) : pathname.replace(/^\/s\/[^/]+/, "");
   const home = `/${locale}`;
   const onHome = rest === home || rest === `${home}/` || rest.startsWith(`${home}/p/`);
+  const onSearch = rest === `${home}/search`;
 
   const placeholder = (id: string, label: string, icon: BottomBarItem["icon"]): BottomBarItem => ({
     id,
@@ -58,7 +59,7 @@ export function StorefrontBottomBar({
 
   const items: BottomBarItem[] = [
     { id: "home", label: labels.home, icon: House, href: `${base}${home}`, active: onHome },
-    placeholder("search", labels.search, MagnifyingGlass),
+    { id: "search", label: labels.search, icon: MagnifyingGlass, href: `${base}/${locale}/search`, active: onSearch },
     placeholder("favorites", labels.favorites, Heart),
     placeholder("account", labels.account, User),
     {

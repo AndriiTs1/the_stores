@@ -153,6 +153,7 @@ export function LanguagePicker({
             ref={listRef}
             id={listId}
             role="listbox"
+            translate="no"
             tabIndex={-1}
             aria-label={buttonLabel.replace("{name}", "").replace(/[\s:]+$/, "")}
             aria-activedescendant={optionId(active)}
@@ -219,7 +220,8 @@ function LanguageButtonRow({
   hrefFor: (l: string) => string;
 }) {
   return (
-    <div className="flex rounded-full bg-surface p-1">
+    // translate="no": browser translators must not turn "DE FR IT EN" into other words.
+    <div translate="no" className="flex rounded-full bg-surface p-1">
       {locales.map((l) => (
         <Link
           key={l}

@@ -6,8 +6,12 @@ import { fontVariables } from "../../../fonts";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
+import { MobileMenu } from "@/components/mobile-menu";
+import { SearchForm } from "@/components/search-form";
+import { StoreNav } from "@/components/store-nav";
 import { getCartCount } from "@/lib/cart";
-import { getDict } from "@/lib/i18n";
+import { db } from "@/lib/db";
+import { getDict, tr } from "@/lib/i18n";
 import { formatMoney } from "@/lib/money";
 import { getBase, getStore, getStoreAndLocale, requestOrigin } from "@/lib/tenant";
 
@@ -29,7 +33,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
-  const count = await getCartCount(store.id);
+  const [count, collections] = await Promise.all([
+    getCartCount(store.id),
+    db.collection.findMany({ where: { storeId: store.id, inNav: true }, orderBy: { position: "asc" } }),
+  ]);
+  const nav = collections.map((c) => ({ href: `${base}/${locale}/collections/${c.slug}`, label: tr(c.name, locale) }));
 
   return (
     <html
@@ -47,19 +55,38 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               {d.freeShippingFrom} {formatMoney(store.freeShippingFrom, locale, store.currency)}
             </div>
           )}
-          {/* Fixed height (56px phone, 72px from md). The 1px bottom line is an inset shadow, not a border,
-              so buttons centre on whole pixels and the language capsule sits exactly 8px below. */}
-          <header className="sticky top-0 z-40 h-14 bg-background shadow-[inset_0_-1px_0_var(--line)] md:h-[72px]">
-            <div className="container-page flex h-full items-center justify-between gap-3">
+          {/* Phone: burger, logo, cart, and the search on a second row. From md the search moves into the row;
+              from lg the navigation replaces the burger. The 1px bottom line is an inset shadow, not a border. */}
+          <header className="sticky top-0 z-40 bg-background shadow-[inset_0_-1px_0_var(--line)]">
+            <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-2 py-2 md:h-[72px] md:flex-nowrap md:py-0 lg:gap-x-6">
+              <MobileMenu
+                className="lg:hidden"
+                items={nav}
+                locales={store.locales}
+                current={locale}
+                base={base}
+                labels={{ menu: d.menu, close: d.closeMenu, nav: d.mainNav, language: d.language }}
+              />
               {/* Never truncated: shrinks by breakpoint and wraps to at most two lines on small phones. */}
               <Link
                 href={`${base}/${locale}`}
-                className="min-w-0 break-words rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg lg:text-xl"
+                className="min-w-0 flex-1 break-words rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg md:flex-none lg:text-xl"
               >
                 {store.name}
               </Link>
-              <nav className="flex shrink-0 items-center gap-2">
-                {/* From md the languages sit here; on phones they live in the bottom bar. */}
+              <StoreNav
+                items={nav}
+                label={d.mainNav}
+                className="hidden shrink-0 gap-5 lg:flex"
+                linkClassName="rounded text-sm font-semibold hover:text-accent aria-[current=page]:text-accent"
+              />
+              <SearchForm
+                action={`${base}/${locale}/search`}
+                labels={{ placeholder: d.searchPlaceholder, submit: d.navSearch }}
+                className="order-last w-full md:order-none md:ml-auto md:w-auto md:max-w-sm md:flex-1"
+              />
+              <div className="flex shrink-0 items-center gap-2">
+                {/* From md the languages sit here; on phones they are in the menu and the bottom bar. */}
                 <div className="hidden md:block">
                   <Suspense fallback={<LanguageButtonsFallback locales={store.locales} current={locale} base={base} />}>
                     <LanguageButtons locales={store.locales} current={locale} base={base} />
@@ -70,7 +97,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                   locale={locale}
                   labels={{ one: d.cartLabelOne, other: d.cartLabelOther }}
                 />
-              </nav>
+              </div>
             </div>
           </header>
 

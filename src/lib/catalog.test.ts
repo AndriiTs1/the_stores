@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { itemLimit, MAX_ITEMS, PAGE_SIZE, toProductCard } from "./catalog";
+import { itemLimit, MAX_ITEMS, moreHref, PAGE_SIZE, searchQuery, toProductCard } from "./catalog";
 
 // Pure functions only: no database client.
 vi.mock("./db", () => ({ db: {} }));
@@ -95,5 +95,21 @@ describe("itemLimit", () => {
     expect(itemLimit("24")).toBe(24);
     expect(itemLimit("13")).toBe(24);
     expect(itemLimit("100000")).toBe(MAX_ITEMS);
+  });
+});
+
+describe("moreHref", () => {
+  it("next page, other params kept and encoded", () => {
+    expect(moreHref("/s/demo/de", 12)).toBe("/s/demo/de?n=24");
+    expect(moreHref("/de/search", 24, { q: "t-shirt & co" })).toBe("/de/search?q=t-shirt+%26+co&n=36");
+  });
+});
+
+describe("searchQuery", () => {
+  it("trims, caps at 100 characters, ignores non-strings", () => {
+    expect(searchQuery("  hoodie ")).toBe("hoodie");
+    expect(searchQuery("x".repeat(150))).toHaveLength(100);
+    expect(searchQuery(undefined)).toBe("");
+    expect(searchQuery(["a", "b"])).toBe("");
   });
 });

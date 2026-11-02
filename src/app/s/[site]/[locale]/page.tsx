@@ -1,5 +1,5 @@
 import { ProductGrid } from "@/components/product-grid";
-import { getProductCards, itemLimit, PAGE_SIZE } from "@/lib/catalog";
+import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import { getDict } from "@/lib/i18n";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 
@@ -27,7 +27,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
       ) : (
         <ProductGrid
           cards={cards}
-          moreHref={hasMore ? `${base}/${locale}?n=${limit + PAGE_SIZE}` : null}
+          moreHref={hasMore ? moreHref(`${base}/${locale}`, limit) : null}
           base={base}
           locale={locale}
           currency={store.currency}
