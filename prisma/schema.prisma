@@ -48,16 +48,22 @@ model Store {
   freeShippingFrom Int?     @default(10000) // free from CHF 100.00
   contactEmail     String?
   orderCounter     Int      @default(1000)
+  // Storefront trust strip: each promise shows only when the store has set it.
+  returnDays       Int? // e.g. 30 → "returns within 30 days"
+  originalGoods    Boolean  @default(false) // the store states it sells new, original goods
+  paymentMethods   String[] @default([]) // enabled in Stripe, e.g. ["card", "twint"]; shown only with Stripe configured
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  domains    Domain[]
-  staff      StaffUser[]
-  categories Category[]
-  products   Product[]
-  locations  Location[]
-  customers  Customer[]
-  orders     Order[]
+  domains     Domain[]
+  staff       StaffUser[]
+  categories  Category[]
+  brands      Brand[]
+  collections Collection[]
+  products    Product[]
+  locations   Location[]
+  customers   Customer[]
+  orders      Order[]
 }
 
 model Domain {
@@ -93,12 +99,44 @@ model Category {
   @@unique([storeId, slug])
 }
 
+model Brand {
+  id       String    @id @default(cuid())
+  storeId  String
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  slug     String
+  name     String // a brand name is the same in every language
+  logoUrl  String?
+  position Int       @default(0)
+  products Product[]
+
+  @@unique([storeId, slug])
+}
+
+// Hand-picked groups of products: the header navigation (Herren, Damen, …) and the home banner.
+model Collection {
+  id       String    @id @default(cuid())
+  storeId  String
+  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  slug     String
+  name     Json // Localized
+  headline Json? // Localized banner title; falls back to the name
+  position Int       @default(0)
+  inNav    Boolean   @default(false)
+  featured Boolean   @default(false) // the banner on the store's home page
+  products Product[]
+
+  @@unique([storeId, slug])
+}
+
 model Product {
   id           String        @id @default(cuid())
   storeId      String
   store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
   categoryId   String?
   category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  brandId      String?
+  brand        Brand?        @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  collections  Collection[]
   slug         String
   title        Json // Localized
   description  Json? // Localized
@@ -114,7 +152,8 @@ model Product {
   variants ProductVariant[]
 
   @@unique([storeId, slug])
-  @@index([storeId, status])
+  @@index([storeId, status, createdAt])
+  @@index([brandId])
 }
 
 model ProductVariant {

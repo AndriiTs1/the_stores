@@ -9,7 +9,7 @@ Next.js 16 · Prisma 7 · PostgreSQL (Neon) · Stripe · Tailwind 4.
 npm install                      # также генерирует Prisma Client
 cp .env.example .env             # указать DATABASE_URL
 npm run db:migrate -- --name init  # создаст prisma/migrations/… и таблицы
-npm run db:seed                  # демо-магазин demo, 4 товара, 35 вариантов
+npm run db:seed                  # демо-магазин demo: 16 товаров, 3 вымышленных бренда, плейсхолдеры в public/demo
 npm run dev
 ```
 
