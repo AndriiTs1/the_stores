@@ -3,6 +3,7 @@ import { isLocale, type Locale } from "./i18n";
 /** Texts of the platform's own pages (landing). Storefront texts stay in i18n.ts. */
 const de = {
   language: "Sprache",
+  eyebrow: "E-Commerce-Plattform",
   heroTitle: "Online-Shops für die Schweiz",
   heroText: "Ein Shop in vier Sprachen, mit Produktvarianten, Lagerbestand und Bestellungen. Preise in Franken.",
   demoButton: "Demo-Shop ansehen",
@@ -26,6 +27,7 @@ const dict: Record<Locale, PlatformDict> = {
   de,
   fr: {
     language: "Langue",
+    eyebrow: "Plateforme e-commerce",
     heroTitle: "Des boutiques en ligne pour la Suisse",
     heroText:
       "Une boutique en quatre langues, avec variantes de produits, gestion du stock et commandes. Prix en francs.",
@@ -44,6 +46,7 @@ const dict: Record<Locale, PlatformDict> = {
   },
   it: {
     language: "Lingua",
+    eyebrow: "Piattaforma e-commerce",
     heroTitle: "Negozi online per la Svizzera",
     heroText: "Un negozio in quattro lingue, con varianti di prodotto, gestione delle scorte e ordini. Prezzi in franchi.",
     demoButton: "Vedi il negozio demo",
@@ -61,6 +64,7 @@ const dict: Record<Locale, PlatformDict> = {
   },
   en: {
     language: "Language",
+    eyebrow: "E-commerce platform",
     heroTitle: "Online shops for Switzerland",
     heroText: "One shop in four languages, with product variants, stock and orders. Prices in Swiss francs.",
     demoButton: "See the demo shop",
