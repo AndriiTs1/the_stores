@@ -24,7 +24,7 @@ export function CollectionBanner({
       >
         {headline}
       </h2>
-      <Link href={href} className="btn bg-background text-foreground">
+      <Link href={href} className="btn btn-light">
         {cta}
       </Link>
     </section>

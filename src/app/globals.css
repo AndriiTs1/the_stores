@@ -71,6 +71,10 @@ h2 {
 .btn-accent {
   @apply bg-accent text-accent-ink;
 }
+/* Light button on a dark surface (e.g. the home banner). */
+.btn-light {
+  @apply bg-background text-foreground;
+}
 .btn-ghost {
   @apply bg-transparent text-foreground ring-1 ring-line hover:bg-surface;
 }

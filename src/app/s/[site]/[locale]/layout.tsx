@@ -108,7 +108,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
             <div className="container-page grid gap-8 py-8 text-sm sm:grid-cols-2 lg:grid-cols-4">
               {(["service", "legal"] as const).map((group) => (
                 <nav key={group} aria-label={group === "service" ? d.footerService : d.footerLegal}>
-                  <h2 className="mb-3 font-sans text-xs font-semibold uppercase tracking-wide text-muted">
+                  <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
                     {group === "service" ? d.footerService : d.footerLegal}
                   </h2>
                   <ul className="space-y-2">
