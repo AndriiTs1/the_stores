@@ -10,16 +10,13 @@ import { isLocale, SUPPORTED_LOCALES } from "@/lib/i18n";
 import { getPlatformDict } from "@/lib/i18n-platform";
 import { PLATFORM_NAME, platformUrl } from "@/lib/platform";
 
-export async function generateMetadata({ params }: LayoutProps<"/[locale]">): Promise<Metadata> {
-  const { locale } = await params;
-  return {
-    metadataBase: platformUrl(),
-    title: { default: PLATFORM_NAME, template: `%s · ${PLATFORM_NAME}` },
-    description: getPlatformDict(locale).heroText,
-  };
-}
+export const metadata: Metadata = {
+  metadataBase: platformUrl(),
+  title: { default: PLATFORM_NAME, template: `%s · ${PLATFORM_NAME}` },
+};
 
-// One static page per language; any other first segment is a 404.
+// The platform's legal pages, one per language; any other first segment is a 404.
+// /<locale> itself has no page: the proxy redirects it to the default store.
 export const dynamicParams = false;
 export function generateStaticParams() {
   return SUPPORTED_LOCALES.map((locale) => ({ locale }));
@@ -43,7 +40,7 @@ export default async function PlatformLayout({ children, params }: LayoutProps<"
       <body className="flex min-h-full flex-col">
         <header className="h-14 shadow-[inset_0_-1px_0_var(--line)] md:h-[72px]">
           <div className="container-page flex h-full items-center justify-between gap-3">
-            <Link href={`/${locale}`} className="rounded font-display text-base font-bold uppercase tracking-tight">
+            <Link href="/" className="rounded font-display text-base font-bold uppercase tracking-tight">
               {PLATFORM_NAME}
             </Link>
             <nav aria-label={t.language}>

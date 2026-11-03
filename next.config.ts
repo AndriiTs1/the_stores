@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   // Later: turn Cache Components back on and cache the catalog per store with
   // `use cache` + cacheTag(`store:${id}`), invalidated from the admin actions.
   cacheComponents: false,
+  devIndicators: false,
   turbopack: {
     rules: {
       "*.css": {

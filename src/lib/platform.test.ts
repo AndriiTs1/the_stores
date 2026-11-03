@@ -2,12 +2,6 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { platformAlternates, platformUrl } from "./platform";
 
 describe("platformAlternates", () => {
-  it("home: all four languages, x-default is the root (it picks the language)", () => {
-    expect(platformAlternates("")).toEqual({
-      languages: { de: "/de", fr: "/fr", it: "/it", en: "/en", "x-default": "/" },
-    });
-  });
-
   it("subpage: all four languages, x-default is the German page", () => {
     expect(platformAlternates("/impressum")).toEqual({
       languages: {

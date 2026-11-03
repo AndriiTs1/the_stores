@@ -1,10 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminAuthorized } from "@/lib/admin-auth";
+import { isLocale } from "@/lib/i18n";
+import { DEFAULT_STORE_SLUG } from "@/lib/platform";
 
 /**
  * Multi-tenant routing.
  *
- *  localhost:3000              → platform home (src/app/(platform))
+ *  localhost:3000              → default store: /s/<DEFAULT_STORE_SLUG>, which picks the language
+ *  localhost:3000/en           → default store in that language: /s/<DEFAULT_STORE_SLUG>/en
  *  localhost:3000/s/demo/de → store "demo" opened by path (handy for previews)
  *  demo.localhost:3000/de   → store "demo" on a subdomain of ROOT_DOMAIN
  *  shop.client-domain.ch/de          → store looked up by custom domain (Domain table)
@@ -43,6 +46,16 @@ export function proxy(req: NextRequest) {
       status: 401,
       headers: { "WWW-Authenticate": 'Basic realm="Shop admin"' },
     });
+  }
+
+  // The platform has no home page of its own: / and /<locale> open the default store.
+  if (!site) {
+    const locale = pathname.split("/")[1] ?? "";
+    if (pathname === "/" || (isLocale(locale) && pathname === `/${locale}`)) {
+      const url = req.nextUrl.clone();
+      url.pathname = `/s/${DEFAULT_STORE_SLUG}${pathname === "/" ? "" : `/${locale}`}`;
+      return NextResponse.redirect(url);
+    }
   }
 
   const requestHeaders = new Headers(req.headers);
