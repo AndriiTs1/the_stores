@@ -141,17 +141,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
             </div>
           </footer>
 
-          <StorefrontBottomBar
-            base={base}
-            locale={locale}
-            locales={store.locales}
-            labels={{
-              home: d.navHome,
-              search: d.navSearch,
-              language: d.language,
-              languageButton: d.languageButton,
-            }}
-          />
+          <StorefrontBottomBar base={base} locale={locale} labels={{ start: d.navHome, categories: d.categories }} />
         </CartCountProvider>
       </body>
     </html>

@@ -8,6 +8,7 @@ export async function Listing({
   title,
   where,
   path,
+  params,
   n,
   storeId,
   locale,
@@ -20,6 +21,8 @@ export async function Listing({
   where: Prisma.ProductWhereInput;
   /** This page without the query, e.g. "/s/demo/de/brands/muster-sport". */
   path: string;
+  /** Query kept by "show more", e.g. { category: "t-shirts" }. */
+  params?: Record<string, string>;
   /** The raw ?n= value. */
   n: unknown;
   storeId: string;
@@ -38,7 +41,7 @@ export async function Listing({
       ) : (
         <ProductGrid
           cards={cards}
-          moreHref={hasMore ? moreHref(path, limit) : null}
+          moreHref={hasMore ? moreHref(path, limit, params) : null}
           base={base}
           locale={locale}
           currency={currency}

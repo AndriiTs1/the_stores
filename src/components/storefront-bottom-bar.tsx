@@ -1,63 +1,28 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Suspense } from "react";
-import { GlobeSimple, House, MagnifyingGlass } from "@phosphor-icons/react";
-import {
-  BAR_POPUP_OFFSET,
-  BarItemFace,
-  BottomBar,
-  barItemClass,
-  barItemColor,
-  type BottomBarItem,
-} from "@/components/bottom-bar";
-import { LanguagePicker } from "@/components/language-picker";
+import { House, SquaresFour } from "@phosphor-icons/react";
+import { BottomBar, type BottomBarItem } from "@/components/bottom-bar";
+import { activeTab, storePath, tabHref, type Tab } from "@/lib/storefront-tabs";
 
-/**
- * The storefront's phone bar: Home, Search (the search page), Language.
- * Favourites and Account come back once they work.
- */
+/** The storefront's phone bar: one item per tab (lib/storefront-tabs), the current tab red. */
 export function StorefrontBottomBar({
   base,
   locale,
-  locales,
   labels,
 }: {
   base: string;
   locale: string;
-  locales: string[];
-  labels: { home: string; search: string; language: string; languageButton: string };
+  labels: { start: string; categories: string };
 }) {
-  const pathname = usePathname();
+  const current = activeTab(storePath(usePathname(), base), locale);
+  const item = (id: Tab, label: string, icon: BottomBarItem["icon"]): BottomBarItem => ({
+    id,
+    label,
+    icon,
+    href: tabHref(id, base, locale),
+    active: current === id,
+  });
 
-  // Home is active on the catalogue and on product pages.
-  const rest = pathname.startsWith(`${base}/`) ? pathname.slice(base.length) : pathname.replace(/^\/s\/[^/]+/, "");
-  const home = `/${locale}`;
-  const onHome = rest === home || rest === `${home}/` || rest.startsWith(`${home}/p/`);
-  const onSearch = rest === `${home}/search`;
-
-  const items: BottomBarItem[] = [
-    { id: "home", label: labels.home, icon: House, href: `${base}${home}`, active: onHome },
-    { id: "search", label: labels.search, icon: MagnifyingGlass, href: `${base}/${locale}/search`, active: onSearch },
-    {
-      id: "language",
-      label: labels.language,
-      icon: GlobeSimple,
-      render: () => (
-        <Suspense fallback={<span className={`${barItemClass} ${barItemColor(false)}`} />}>
-          <LanguagePicker
-            locales={locales}
-            current={locale}
-            base={base}
-            buttonLabel={labels.languageButton}
-            sideOffset={BAR_POPUP_OFFSET}
-            triggerClassName={`${barItemClass} ${barItemColor(false)} data-[state=open]:text-foreground`}
-            icon={() => <BarItemFace icon={GlobeSimple} label={labels.language} />}
-          />
-        </Suspense>
-      ),
-    },
-  ];
-
-  return <BottomBar items={items} />;
+  return <BottomBar items={[item("start", labels.start, House), item("categories", labels.categories, SquaresFour)]} />;
 }

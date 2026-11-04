@@ -89,6 +89,9 @@ export async function getProductCards(
   return { cards: rows.slice(0, limit).map((p) => toProductCard(p, locale)), hasMore: rows.length > limit };
 }
 
+/** Products on sale: at least one variant with a compare-at (former) price. */
+export const ON_SALE = { variants: { some: { compareAtPrice: { not: null } } } } satisfies Prisma.ProductWhereInput;
+
 /** Link for "show more": the same listing with one more page. `params` keeps e.g. the search query. */
 export function moreHref(path: string, limit: number, params: Record<string, string> = {}) {
   return `${path}?${new URLSearchParams({ ...params, n: String(limit + PAGE_SIZE) })}`;
