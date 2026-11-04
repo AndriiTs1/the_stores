@@ -6,14 +6,6 @@ const nextConfig: NextConfig = {
   // `use cache` + cacheTag(`store:${id}`), invalidated from the admin actions.
   cacheComponents: false,
   devIndicators: false,
-  turbopack: {
-    rules: {
-      "*.css": {
-        loaders: ["@tailwindcss/turbopack"],
-        as: "*.css",
-      },
-    },
-  },
 };
 
 export default nextConfig;

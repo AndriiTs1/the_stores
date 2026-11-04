@@ -71,8 +71,8 @@ export function QuantityStepper({
   return (
     <div className="stepper w-32">
       <div
-        className={`flex h-10 items-stretch overflow-hidden rounded-md border transition-shadow focus-within:field-focus ${
-          invalid ? "border-accent" : "border-field-border"
+        className={`field flex h-10 items-stretch overflow-hidden rounded-md focus-within:field-focus ${
+          invalid ? "border-accent" : ""
         } ${disabled ? "opacity-40" : ""}`}
       >
         <button
@@ -123,7 +123,7 @@ export function QuantityStepper({
             }
           }}
           onBlur={leave}
-          className="w-12 min-w-0 border-x border-line bg-background text-center text-sm tabular-nums"
+          className="w-12 min-w-0 border-x border-line bg-transparent text-center text-sm tabular-nums"
         />
         <button
           type={buttonName ? "submit" : "button"}

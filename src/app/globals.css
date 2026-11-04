@@ -13,10 +13,13 @@
   --accent-ink: #ffffff;
   --banner: #ecebe8; /* home banner background */
   --banner-text: #3d3d3b; /* home banner text line */
-  --field-border: #d6d6d2; /* input fields at rest */
-  --ring: var(--accent); /* keyboard focus outline: 5.9:1 on white, 3.2:1 on the black bar and dock */
-  /* Focused input field: 1.5px red edge (1px border + 0.5px inset, so nothing moves) and a soft glow. */
-  --field-focus: inset 0 0 0 0.5px var(--accent), 0 0 0 3px rgb(200 16 46 / 0.15);
+  --field: #f4f4f2; /* input field background at rest */
+  --ring: var(--accent); /* keyboard focus outline of links and buttons: 5.9:1 on white, 3.2:1 on the black bar */
+  /*
+   * Focused input field: a 1.5px grey edge and a soft halo. Chrome snaps border widths to whole pixels, so the
+   * edge is the 1px border plus a 0.5px inset shadow of the same colour.
+   */
+  --field-focus: inset 0 0 0 0.5px var(--meta), 0 0 0 3px rgb(17 17 17 / 0.08);
 }
 
 @theme inline {
@@ -26,7 +29,7 @@
   --color-meta: var(--meta);
   --color-line: var(--line);
   --color-divider: var(--divider);
-  --color-field-border: var(--field-border);
+  --color-field: var(--field);
   --color-surface: var(--surface);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
@@ -68,7 +71,8 @@ h2 {
 :where(a, button, input, select, textarea, summary, [tabindex]):focus {
   outline: none;
 }
-:where(a, button, input, select, textarea, summary, [tabindex]):not([role="listbox"]):focus-visible {
+/* Input fields (.input, the quantity stepper) show focus with their own border and halo instead. */
+:where(a, button, input, select, textarea, summary, [tabindex]):not([role="listbox"], .input):focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
@@ -86,12 +90,27 @@ h2 {
 .btn-ghost {
   @apply bg-transparent text-foreground ring-1 ring-line hover:bg-surface;
 }
-.input {
-  @apply h-10 w-full min-w-0 rounded-md border border-field-border bg-background px-3 text-sm focus:field-focus aria-[invalid=true]:border-accent;
+/*
+ * Every input field of the storefront: grey fill and a transparent border at rest (so focus doesn't move
+ * anything), white with a 1.5px grey edge and halo when focused — by mouse or keyboard alike.
+ * In the components layer, so utilities on the element (padding, width, flex) still apply.
+ */
+@layer components {
+  .input {
+    @apply field h-10 w-full min-w-0 rounded-md px-3 text-sm text-foreground placeholder:text-meta focus:field-focus aria-[invalid=true]:border-accent;
+  }
 }
-/* Focus style of every input field: the red edge and glow replace the outline (mouse and keyboard alike). */
+@utility field {
+  border: 1px solid transparent;
+  background-color: var(--field);
+  transition:
+    background-color 150ms ease-out,
+    border-color 150ms ease-out,
+    box-shadow 150ms ease-out;
+}
 @utility field-focus {
-  border-color: var(--accent);
+  background-color: var(--background);
+  border-color: var(--meta);
   box-shadow: var(--field-focus);
   outline: none;
 }
