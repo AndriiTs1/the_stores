@@ -71,8 +71,9 @@ export function BottomBar({ items }: { items: BottomBarItem[] }) {
                   </span>
                 )}
               </span>
-              {/* Long words (e.g. "Catégories") shrink to an ellipsis instead of widening the column. */}
-              <span className="max-w-full truncate px-1 text-[11px] leading-none">{label}</span>
+              {/* Long words (e.g. "Catégories") shrink to an ellipsis instead of widening the column. Line height 1.3:
+                  truncate clips at the line box, so a tighter one cut off descenders ("g" in "Categorie"). */}
+              <span className="max-w-full truncate px-1 text-[11px] leading-[1.3]">{label}</span>
             </>
           );
           return (

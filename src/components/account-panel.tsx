@@ -1,14 +1,17 @@
 "use client";
 
 import { useEffect, useId, useRef, useSyncExternalStore, type ReactNode, type RefObject } from "react";
+import { usePathname } from "next/navigation";
 import { createPortal } from "react-dom";
 import { X } from "@phosphor-icons/react";
-import { pushHash, readHash, replaceHash, subscribeHash } from "@/lib/url-hash";
+import { storePath } from "@/lib/storefront-tabs";
+import { notifyHashChanged, pushHash, readHash, replaceHash, subscribeHash } from "@/lib/url-hash";
 
 /**
  * The phone's account side panel is open while the URL ends in #account. Being in the URL it survives a
  * language change (the language links keep the hash, and the new language mounts a fresh layout), and the
- * back gesture closes it (opening adds a history entry).
+ * back gesture closes it (opening adds a history entry). Going to another page closes it and removes #account
+ * in place, so Back never reopens it.
  */
 const HASH = "#account";
 
@@ -34,9 +37,14 @@ export function closeAccountPanel() {
 const subscribeNothing = () => () => {};
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/** Where focus goes on a new page: the start of its content (<main tabIndex={-1}> in the storefront layout). */
+export const MAIN_ID = "main";
+
 /**
- * Right-hand panel, 85% of the screen, over a dimmed page (phones only). A dialog: focus moves in and stays
- * in while open (Tab wraps), Esc / the cross / a tap on the dim layer close it, focus then returns to `returnFocus`.
+ * Right-hand panel, 85% of the screen, over a dimmed page (phones only). A dialog: focus moves to the panel itself
+ * (no ring: a tap must not show one; Tab then reaches the cross) and stays in while open (Tab wraps).
+ * Esc / the cross / a tap on the dim layer close it and focus returns to `returnFocus`; a link to another page
+ * closes it and focus starts at the new page's content.
  */
 export function AccountPanel({
   id,
@@ -44,6 +52,7 @@ export function AccountPanel({
   title,
   closeLabel,
   returnFocus,
+  base,
   children,
 }: {
   id: string;
@@ -51,6 +60,8 @@ export function AccountPanel({
   title: string;
   closeLabel: string;
   returnFocus: RefObject<HTMLElement | null>;
+  /** Store prefix of links ("/s/demo" or ""), to tell a page change from a language change. */
+  base: string;
   children: ReactNode;
 }) {
   const mounted = useSyncExternalStore(
@@ -60,12 +71,29 @@ export function AccountPanel({
   );
   const titleId = useId();
   const panel = useRef<HTMLDivElement>(null);
-  const closeButton = useRef<HTMLButtonElement>(null);
   const wasOpen = useRef(false);
+  /** Set when a link in the panel leads away: focus then goes to the new page, not back to the Account button. */
+  const leaving = useRef(false);
+
+  // The page without store prefix and locale: "/info/rueckgabe". A language change keeps it (and the panel open).
+  const page = storePath(usePathname(), base).replace(/^\/[^/]+/, "");
+  const lastPage = useRef(page);
+  useEffect(() => {
+    if (lastPage.current === page) return;
+    lastPage.current = page;
+    // The router has written the new URL by now. A page reached with #account (Back to an old entry) is cleaned
+    // in place; otherwise the hash store just learns the URL changed.
+    if (readHash() === HASH) replaceHash("");
+    else notifyHashChanged();
+    if (leaving.current) {
+      leaving.current = false;
+      document.getElementById(MAIN_ID)?.focus({ preventScroll: true });
+    }
+  }, [page]);
 
   useEffect(() => {
     if (open) {
-      closeButton.current?.focus();
+      panel.current?.focus({ preventScroll: true });
       const root = document.documentElement;
       const overflow = root.style.overflow;
       root.style.overflow = "hidden"; // the page behind doesn't scroll
@@ -79,9 +107,19 @@ export function AccountPanel({
     }
     if (wasOpen.current) {
       wasOpen.current = false;
-      returnFocus.current?.focus();
+      if (!leaving.current) returnFocus.current?.focus();
     }
   }, [open, returnFocus]);
+
+  // A link to another page (not a language link: those keep #account): drop the hash in place before the router
+  // pushes the new page, so Back returns to the page without the panel.
+  const leaveByLink = (e: React.MouseEvent) => {
+    const link = (e.target as Element).closest("a[href]");
+    if (!(link instanceof HTMLAnchorElement) || new URL(link.href).hash === HASH) return;
+    leaving.current = true;
+    openedAt = null;
+    replaceHash("");
+  };
 
   // Tab and Shift+Tab wrap around inside the panel.
   const trapFocus = (e: React.KeyboardEvent) => {
@@ -89,7 +127,7 @@ export function AccountPanel({
     const items = [...panel.current.querySelectorAll<HTMLElement>(FOCUSABLE)];
     const first = items[0];
     const last = items.at(-1);
-    if (e.shiftKey && document.activeElement === first) {
+    if (e.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) {
       e.preventDefault();
       last?.focus();
     } else if (!e.shiftKey && document.activeElement === last) {
@@ -123,7 +161,9 @@ export function AccountPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        tabIndex={-1}
         onKeyDown={trapFocus}
+        onClickCapture={leaveByLink}
         className={`absolute inset-y-0 right-0 flex w-[85%] max-w-sm flex-col bg-background shadow-xl transition-transform duration-200 ease-out motion-reduce:transition-none ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
@@ -133,7 +173,6 @@ export function AccountPanel({
             {title}
           </h2>
           <button
-            ref={closeButton}
             type="button"
             aria-label={closeLabel}
             onClick={closeAccountPanel}

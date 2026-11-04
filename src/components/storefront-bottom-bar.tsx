@@ -67,6 +67,7 @@ export function StorefrontBottomBar({
         title={labels.account}
         closeLabel={labels.close}
         returnFocus={accountButton}
+        base={base}
       >
         {accountPanel}
       </AccountPanel>

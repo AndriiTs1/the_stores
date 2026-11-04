@@ -27,4 +27,10 @@ function setHash(hash: string, mode: "push" | "replace") {
 }
 
 export const pushHash = (hash: string) => setHash(hash, "push");
+
+/**
+ * Re-read the hash after a Next.js navigation: the router writes the new URL with history.pushState,
+ * which fires no event, so a hash store would otherwise keep the old value (e.g. "#account").
+ */
+export const notifyHashChanged = () => window.dispatchEvent(new Event(HASH_EVENT));
 export const replaceHash = (hash: string) => setHash(hash, "replace");

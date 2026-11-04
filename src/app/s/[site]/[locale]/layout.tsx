@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import "../../../globals.css";
 import { fontVariables } from "../../../fonts";
 import { AccountContent } from "@/components/account-content";
+import { MAIN_ID } from "@/components/account-panel";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
@@ -117,7 +118,10 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               </div>
             </header>
 
-            <main className="container-page flex-1 py-6 sm:py-8">{children}</main>
+            {/* tabIndex -1: after leaving the account panel by a link, focus starts here on the new page. */}
+            <main id={MAIN_ID} tabIndex={-1} className="container-page flex-1 py-6 sm:py-8">
+              {children}
+            </main>
 
             {/* Phones: only the copyright line (the information pages are in the account panel). */}
             <footer className="mt-10 border-t border-line">

@@ -46,9 +46,13 @@
   --font-display: var(--font-display);
 }
 
-/* Appearing/disappearing scrollbar must not shift the page. */
+/*
+ * Appearing/disappearing scrollbar must not shift the page.
+ * No tap highlight: iOS / Android draw a dark box around a tapped link; pressed states come from :active instead.
+ */
 html {
   scrollbar-gutter: stable;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -71,8 +75,11 @@ h2 {
 :where(a, button, input, select, textarea, summary, [tabindex]):focus {
   outline: none;
 }
-/* Input fields (.input, the quantity stepper) show focus with their own border and halo instead. */
-:where(a, button, input, select, textarea, summary, [tabindex]):not([role="listbox"], .input):focus-visible {
+/*
+ * Input fields (.input, the quantity stepper) show focus with their own border and halo instead. Elements with
+ * tabindex="-1" (a dialog, the page content) only receive focus from script, never from Tab: no ring.
+ */
+:where(a, button, input, select, textarea, summary, [tabindex]):not([role="listbox"], .input, [tabindex="-1"]):focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }

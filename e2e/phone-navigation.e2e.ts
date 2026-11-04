@@ -39,7 +39,7 @@ test("account panel: opens, switches to French and stays open, Esc closes and re
   const panel = page.getByRole("dialog", { name: "Konto" });
   await expect(panel).toBeVisible();
   await expect(account).toHaveAttribute("aria-expanded", "true");
-  await expect(panel.getByRole("button", { name: "Schliessen" })).toBeFocused();
+  await expect(panel).toBeFocused(); // the panel itself, not the cross (a tap must not show a ring)
 
   await panel.getByRole("link", { name: "Français" }).tap();
   await expect(page).toHaveURL(/\/s\/demo\/fr#account$/);
@@ -80,4 +80,76 @@ test("/account as an address shows the same menu as a page", async ({ page }) =>
   await expect(page.getByRole("main").getByRole("link", { name: "Rückgabe" })).toBeVisible();
   await page.getByRole("main").getByRole("link", { name: "Français" }).tap();
   await expect(page).toHaveURL(/\/fr\/account$/);
+});
+
+/** Outline of the focused element ("none" when there is none). */
+const focusOutline = (page: Page) =>
+  page.evaluate(() => {
+    const c = getComputedStyle(document.activeElement as Element);
+    return c.outlineStyle === "none" ? "none" : `${c.outlineStyle} ${c.outlineWidth} ${c.outlineColor}`;
+  });
+
+test("account panel opened by a tap: no focus ring on the cross or anywhere", async ({ page }) => {
+  await page.goto(STORE);
+  await bar(page).getByRole("button", { name: "Konto" }).tap();
+  const panel = page.getByRole("dialog", { name: "Konto" });
+  await expect(panel).toBeFocused();
+  expect(await focusOutline(page)).toBe("none");
+  const cross = panel.getByRole("button", { name: "Schliessen" });
+  expect(await cross.evaluate((b) => getComputedStyle(b).outlineStyle)).toBe("none");
+});
+
+test("a link in the panel closes it and opens the page; Back returns home without the menu", async ({ page }) => {
+  await page.goto(STORE);
+  await bar(page).getByRole("button", { name: "Konto" }).tap();
+  const panel = page.getByRole("dialog", { name: "Konto" });
+  await panel.getByRole("link", { name: "Rückgabe" }).tap();
+  await expect(page).toHaveURL(/\/s\/demo\/de\/info\/rueckgabe$/); // no #account
+  await expect(panel).toBeHidden();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Rückgabe");
+  await expect(page.locator("main")).toBeFocused(); // focus starts at the new page, not on the Account button
+  expect(await focusOutline(page)).toBe("none");
+
+  await page.goBack();
+  await expect(page).toHaveURL(/\/s\/demo\/de$/);
+  await expect(panel).toBeHidden();
+});
+
+test("account panel items: a tap shows no ring, Tab shows the grey one", async ({ page }) => {
+  await page.goto("/s/demo/it");
+  await bar(page).getByRole("button", { name: "Account" }).tap();
+  const panel = page.getByRole("dialog", { name: "Account" });
+  const item = panel.getByRole("link", { name: "Reso" });
+  await item.dispatchEvent("pointerdown"); // press without releasing: the state right after the touch starts
+  expect(await focusOutline(page)).toBe("none");
+
+  await panel.focus();
+  const rings = new Set<string>();
+  for (let i = 0; i < 6; i++) {
+    await page.keyboard.press("Tab");
+    rings.add(await focusOutline(page));
+  }
+  expect([...rings]).toEqual(["solid 2px rgb(94, 94, 94)"]);
+});
+
+test("bar labels: line height at least 1.3, nothing cut off in any language", async ({ page }) => {
+  for (const locale of ["de", "fr", "it", "en"]) {
+    await page.goto(`/s/demo/${locale}`);
+    const labels = await bar(page)
+      .locator("span.truncate")
+      .evaluateAll((spans) =>
+        spans.map((s) => {
+          const c = getComputedStyle(s);
+          return {
+            text: s.textContent,
+            ratio: parseFloat(c.lineHeight) / parseFloat(c.fontSize),
+            cut: s.scrollWidth > s.clientWidth,
+          };
+        }),
+      );
+    for (const l of labels) {
+      expect(l.ratio, `${locale} ${l.text}`).toBeGreaterThanOrEqual(1.3 - 0.001);
+      expect(l.cut, `${locale} ${l.text}`).toBe(false);
+    }
+  }
 });
