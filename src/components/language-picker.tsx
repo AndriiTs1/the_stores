@@ -48,17 +48,20 @@ export function LanguageButtons({ locales, current, base }: { locales: string[];
   return <LanguageButtonRow locales={locales} current={current} hrefFor={hrefFor} />;
 }
 
-/** Server fallback while useSearchParams suspends: same look, links to each language's store root. */
+/** Server fallback while useSearchParams suspends (and without JavaScript): same look, links to `path` in each language. */
 export function LanguageButtonsFallback({
   locales,
   current,
   base,
+  path = "",
 }: {
   locales: string[];
   current: string;
   base: string;
+  /** This page after the locale when the server knows it (e.g. "/account"); else the store root. */
+  path?: string;
 }) {
-  return <LanguageButtonRow locales={locales} current={current} hrefFor={(l) => `${base}/${l}`} />;
+  return <LanguageButtonRow locales={locales} current={current} hrefFor={(l) => `${base}/${l}${path}`} />;
 }
 
 function LanguageButtonRow({
