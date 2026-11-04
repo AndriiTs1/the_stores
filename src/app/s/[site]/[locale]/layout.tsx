@@ -9,7 +9,7 @@ import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
 import { SearchForm } from "@/components/search-form";
 import { StoreNav } from "@/components/store-nav";
-import { WishlistProvider } from "@/components/wishlist";
+import { WishlistHeaderLink, WishlistProvider } from "@/components/wishlist";
 import { getCartCount } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { getDict, tr } from "@/lib/i18n";
@@ -103,6 +103,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                       <LanguageButtons locales={store.locales} current={locale} base={base} />
                     </Suspense>
                   </div>
+                  <WishlistHeaderLink
+                    href={`${base}/${locale}/wishlist`}
+                    labels={{ wishlist: d.wishlist, count: d.wishlistLabel }}
+                    className="hidden md:inline-flex"
+                  />
                   <CartButton
                     href={`${base}/${locale}/cart`}
                     locale={locale}
@@ -114,8 +119,9 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
 
             <main className="container-page flex-1 py-6 sm:py-8">{children}</main>
 
+            {/* Phones: only the copyright line (the information pages are in the account panel). */}
             <footer className="mt-10 border-t border-line">
-              <div className="container-page grid gap-8 py-8 text-sm sm:grid-cols-2 lg:grid-cols-4">
+              <div className="container-page hidden gap-8 border-b border-line py-8 text-sm md:grid md:grid-cols-2 lg:grid-cols-4">
                 {(["service", "legal"] as const).map((group) => (
                   <nav key={group} aria-label={group === "service" ? d.footerService : d.footerLegal}>
                     <h2 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted">
@@ -133,15 +139,9 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                   </nav>
                 ))}
               </div>
-              <div className="container-page flex flex-wrap justify-between gap-2 border-t border-line py-6 text-xs text-muted">
-                <span>
-                  © {new Date().getFullYear()} <span className="uppercase">{store.name}</span>
-                </span>
-                <span>
-                  {store.currency} · {d.vatIncluded} ({(store.vatRateBp / 100).toFixed(1)}%)
-                  {store.contactEmail && <> · {store.contactEmail}</>}
-                </span>
-              </div>
+              <p className="container-page py-6 text-xs text-muted">
+                © {new Date().getFullYear()} <span className="uppercase">{store.name}</span>
+              </p>
             </footer>
 
             <StorefrontBottomBar

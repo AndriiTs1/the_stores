@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { createContext, useContext, useState, useSyncExternalStore } from "react";
 import { Heart } from "@phosphor-icons/react";
 import { browserWishlistStorage, createWishlist, type Wishlist } from "@/lib/wishlist";
@@ -55,5 +56,42 @@ export function WishlistButton({
         <Heart aria-hidden size={overlay ? 18 : 24} weight={saved ? "fill" : "regular"} />
       </span>
     </button>
+  );
+}
+
+/**
+ * Header link to the wishlist (from md; phones have the bottom-bar tab): an outline heart like the cart next to it,
+ * with a red count when something is saved.
+ */
+export function WishlistHeaderLink({
+  href,
+  labels,
+  className = "",
+}: {
+  href: string;
+  /** count: e.g. "Merkliste, {n}". */
+  labels: { wishlist: string; count: string };
+  className?: string;
+}) {
+  const n = useWishlist().ids?.length ?? 0;
+  return (
+    <Link
+      href={href}
+      aria-label={n > 0 ? labels.count.replace("{n}", String(n)) : labels.wishlist}
+      className={`group relative size-11 items-center justify-center rounded-full text-foreground ${className}`}
+    >
+      {/* Badge against the 22px icon, as on the cart. */}
+      <span className="relative inline-flex transition group-hover:opacity-70">
+        <Heart aria-hidden size={22} weight="bold" />
+        {n > 0 && (
+          <span
+            aria-hidden
+            className="absolute -right-2.5 -top-2 inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent px-1 text-[11px] font-semibold leading-none tabular-nums text-accent-ink"
+          >
+            {n > 99 ? "99+" : n}
+          </span>
+        )}
+      </span>
+    </Link>
   );
 }
