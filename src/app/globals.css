@@ -14,7 +14,7 @@
   --banner: #ecebe8; /* home banner background */
   --banner-text: #3d3d3b; /* home banner text line */
   --field: #f4f4f2; /* input field background at rest */
-  --ring: var(--accent); /* keyboard focus outline of links and buttons: 5.9:1 on white, 3.2:1 on the black bar */
+  --ring: var(--meta); /* keyboard focus outline of links and buttons: 6.4:1 on white (the black bar uses white) */
   /*
    * Focused input field: a 1.5px grey edge and a soft halo. Chrome snaps border widths to whole pixels, so the
    * edge is the 1px border plus a 0.5px inset shadow of the same colour.

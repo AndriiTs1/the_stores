@@ -6,7 +6,6 @@ import { fontVariables } from "../../../fonts";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
-import { MobileMenu } from "@/components/mobile-menu";
 import { SearchForm } from "@/components/search-form";
 import { StoreNav } from "@/components/store-nav";
 import { getCartCount } from "@/lib/cart";
@@ -61,7 +60,8 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
           {/* Scrolls away with the page; only the header below sticks. */}
           {/* The store's message (settings); none → no bar. */}
           {announcement && (
-            <div className="bg-foreground px-4 py-2 text-center text-xs font-medium tracking-wide text-background">
+            // White keyboard focus here: the grey outline would be too faint on black.
+            <div className="bg-foreground px-4 py-2 text-center text-xs font-medium tracking-wide text-background [--ring:#fff]">
               {announcementHref ? (
                 <Link href={announcementHref} className="rounded underline-offset-2 hover:underline">
                   {announcement}
@@ -71,18 +71,10 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               )}
             </div>
           )}
-          {/* Phone: burger, logo, cart, and the search on a second row. From md the search moves into the row;
-              from lg the navigation replaces the burger. The 1px bottom line is an inset shadow, not a border. */}
+          {/* Phone: logo and cart, the search on a second row (navigation is the bottom bar). From md the navigation
+              and languages join the first row; from lg the search too. The 1px bottom line is an inset shadow. */}
           <header className="sticky top-0 z-40 bg-background shadow-[inset_0_-1px_0_var(--line)]">
-            <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-2 py-2 md:h-[72px] md:flex-nowrap md:py-0 lg:gap-x-6">
-              <MobileMenu
-                className="lg:hidden"
-                items={nav}
-                locales={store.locales}
-                current={locale}
-                base={base}
-                labels={{ menu: d.menu, close: d.closeMenu, nav: d.mainNav, language: d.language }}
-              />
+            <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-2 py-2 lg:h-[72px] lg:flex-nowrap lg:gap-x-6 lg:py-0">
               {/* Never truncated: shrinks by breakpoint and wraps to at most two lines on small phones. */}
               <Link
                 href={`${base}/${locale}`}
@@ -93,16 +85,16 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               <StoreNav
                 items={nav}
                 label={d.mainNav}
-                className="hidden shrink-0 gap-5 lg:flex"
+                className="hidden shrink-0 gap-4 md:flex lg:gap-5"
                 linkClassName="rounded text-sm font-semibold hover:text-accent aria-[current=page]:text-accent"
               />
               <SearchForm
                 action={`${base}/${locale}/search`}
                 labels={{ placeholder: d.searchPlaceholder, submit: d.navSearch }}
-                className="order-last w-full md:order-none md:ml-auto md:w-auto md:max-w-sm md:flex-1"
+                className="order-last w-full lg:order-none lg:ml-auto lg:w-auto lg:max-w-sm lg:flex-1"
               />
-              <div className="flex shrink-0 items-center gap-2">
-                {/* From md the languages sit here; on phones they are in the menu and the bottom bar. */}
+              <div className="flex shrink-0 items-center gap-2 md:ml-auto lg:ml-0">
+                {/* From md the languages sit here; on phones they are on the account screen. */}
                 <div className="hidden md:block">
                   <Suspense fallback={<LanguageButtonsFallback locales={store.locales} current={locale} base={base} />}>
                     <LanguageButtons locales={store.locales} current={locale} base={base} />
