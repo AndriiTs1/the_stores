@@ -22,7 +22,7 @@ export function ProductGrid({
   base: string;
   locale: string;
   currency: string;
-  labels: { soldOut: string; sizes: string; showMore: string };
+  labels: { soldOut: string; newBadge: string; sizes: string; showMore: string };
   /** Preload the first two photos (the grid is the top of the page). */
   preloadFirst?: boolean;
 }) {

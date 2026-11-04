@@ -43,7 +43,7 @@ const categories: { slug: string; name: L }[] = [
   { slug: "accessoires", name: { de: "Accessoires", fr: "Accessoires", it: "Accessori", en: "Accessories" } },
 ];
 
-// Header navigation; "sport" is also the home page banner.
+// Header navigation.
 const collections: { slug: string; name: L; headline?: L; featured?: boolean }[] = [
   { slug: "herren", name: { de: "Herren", fr: "Hommes", it: "Uomo", en: "Men" } },
   { slug: "damen", name: { de: "Damen", fr: "Femmes", it: "Donna", en: "Women" } },
@@ -75,6 +75,8 @@ type SeedProduct = {
   /** Placeholder photos in public/demo: <slug>-1.svg (and -2.svg, shown on hover). */
   images: 1 | 2;
   soldOut?: boolean;
+  /** "New" badge on the card. */
+  isNew?: boolean;
 };
 
 const d = (de: string, fr: string, it: string, en: string): L => ({ de, fr, it, en });
@@ -97,6 +99,7 @@ const products: SeedProduct[] = [
     colors: ["Schwarz", "Weiss"],
     sizes: "adult",
     images: 2,
+    isNew: true,
   },
   {
     slug: "windjacke-ridge",
@@ -132,6 +135,7 @@ const products: SeedProduct[] = [
     colors: ["Schwarz", "Blau"],
     sizes: "women",
     images: 2,
+    isNew: true,
   },
   {
     slug: "kinder-hoodie",
@@ -373,7 +377,22 @@ async function main() {
   const store = await db.store.create({
     data: {
       slug: "demo",
-      name: "Demo Store",
+      name: "The stores",
+      announcement: d(
+        "Neue Kollektion · Herbst / Winter 2026",
+        "Nouvelle collection · Automne / Hiver 2026",
+        "Nuova collezione · Autunno / Inverno 2026",
+        "New collection · Autumn / Winter 2026",
+      ),
+      announcementHref: "/", // the catalogue
+      bannerEyebrow: d("Herbst / Winter 2026", "Automne / Hiver 2026", "Autunno / Inverno 2026", "Autumn / Winter 2026"),
+      bannerTitle: d("Neue Kollektion", "Nouvelle collection", "Nuova collezione", "New collection"),
+      bannerText: d(
+        "Trainingskleidung für jeden Tag.",
+        "Des vêtements de sport pour tous les jours.",
+        "Abbigliamento sportivo per ogni giorno.",
+        "Training wear for every day.",
+      ),
       contactEmail: "shop@example.ch",
       locations: { create: [{ name: "Lager Lugano", type: "WAREHOUSE" }] },
       categories: { create: categories.map((c, i) => ({ slug: c.slug, name: c.name, position: i })) },
@@ -426,6 +445,7 @@ async function main() {
         images: Array.from({ length: p.images }, (_, i) => `/demo/${p.slug}-${i + 1}.svg`),
         optionNames: sizes.length ? ["size", "color"] : ["color"],
         optionValues: { color: Object.fromEntries(p.colors.map((c) => [c, COLORS[c]])) },
+        isNew: p.isNew ?? false,
         createdAt: new Date(now - index * 60_000),
         variants: { create: variants },
       },

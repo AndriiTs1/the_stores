@@ -23,6 +23,7 @@ const product = (over: Partial<Row>): Row =>
     images: ["/a.svg", "/b.svg", "/c.svg"],
     optionNames: ["size", "color"],
     optionValues: null,
+    isNew: false,
     brand: { name: "Muster Basics" },
     variants: [],
     ...over,
@@ -73,6 +74,11 @@ describe("toProductCard", () => {
     expect(card.sizes).toEqual([]);
     expect(card.soldOut).toBe(true);
     expect(card.brand).toBeNull();
+  });
+
+  it("the store's \"new\" flag reaches the card", () => {
+    expect(toProductCard(product({ isNew: true }), "de").isNew).toBe(true);
+    expect(toProductCard(product({}), "de").isNew).toBe(false);
   });
 
   it("size labels use the product's translations", () => {

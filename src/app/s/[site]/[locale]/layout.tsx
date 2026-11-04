@@ -12,7 +12,6 @@ import { StoreNav } from "@/components/store-nav";
 import { getCartCount } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { getDict, tr } from "@/lib/i18n";
-import { formatMoney } from "@/lib/money";
 import { STORE_PAGES } from "@/lib/store-pages";
 import { getBase, getStore, getStoreAndLocale, requestOrigin } from "@/lib/tenant";
 
@@ -23,6 +22,13 @@ export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[local
     metadataBase: await requestOrigin(),
     title: { default: store.name, template: `%s · ${store.name}` },
   };
+}
+
+/** A link from the store settings: a full URL as is, else a path after the locale ("/" = the catalogue). */
+function storeHref(href: string | null, base: string, locale: string): string | null {
+  if (!href) return null;
+  if (/^https?:\/\//.test(href)) return href;
+  return `${base}/${locale}${href === "/" ? "" : href}`;
 }
 
 // Content may extend under the iPhone home indicator; the bottom bar pads itself with safe-area-inset-bottom.
@@ -38,6 +44,8 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
     getCartCount(store.id),
     db.collection.findMany({ where: { storeId: store.id, inNav: true }, orderBy: { position: "asc" } }),
   ]);
+  const announcement = tr(store.announcement, locale);
+  const announcementHref = storeHref(store.announcementHref, base, locale);
   const nav = collections.map((c) => ({ href: `${base}/${locale}/collections/${c.slug}`, label: tr(c.name, locale) }));
 
   return (
@@ -51,9 +59,16 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
       <body className="flex min-h-full flex-col pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-0">
         <CartCountProvider count={count}>
           {/* Scrolls away with the page; only the header below sticks. */}
-          {store.freeShippingFrom != null && (
-            <div className="bg-foreground px-4 py-2 text-center text-xs font-medium tracking-wide text-background tabular-nums">
-              {d.freeShippingFrom} {formatMoney(store.freeShippingFrom, locale, store.currency)}
+          {/* The store's message (settings); none → no bar. */}
+          {announcement && (
+            <div className="bg-foreground px-4 py-2 text-center text-xs font-medium tracking-wide text-background">
+              {announcementHref ? (
+                <Link href={announcementHref} className="rounded underline-offset-2 hover:underline">
+                  {announcement}
+                </Link>
+              ) : (
+                announcement
+              )}
             </div>
           )}
           {/* Phone: burger, logo, cart, and the search on a second row. From md the search moves into the row;
@@ -125,7 +140,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
             </div>
             <div className="container-page flex flex-wrap justify-between gap-2 border-t border-line py-6 text-xs text-muted">
               <span>
-                © {new Date().getFullYear()} {store.name}
+                © {new Date().getFullYear()} <span className="uppercase">{store.name}</span>
               </span>
               <span>
                 {store.currency} · {d.vatIncluded} ({(store.vatRateBp / 100).toFixed(1)}%)

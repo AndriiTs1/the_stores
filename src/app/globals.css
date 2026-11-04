@@ -5,10 +5,13 @@
   --background: #ffffff;
   --foreground: #111111;
   --muted: #6b6b6b;
+  --meta: #5e5e5e; /* sizes and old prices on product cards */
   --line: #e6e6e6;
   --surface: #f5f5f4;
   --accent: #c8102e;
   --accent-ink: #ffffff;
+  --banner: #ecebe8; /* home banner background */
+  --banner-text: #3d3d3b; /* home banner text line */
   --ring: var(--foreground); /* focus outline */
 }
 
@@ -16,10 +19,13 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-muted: var(--muted);
+  --color-meta: var(--meta);
   --color-line: var(--line);
   --color-surface: var(--surface);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
+  --color-banner: var(--banner);
+  --color-banner-text: var(--banner-text);
 }
 
 /*
@@ -70,10 +76,6 @@ h2 {
 }
 .btn-accent {
   @apply bg-accent text-accent-ink;
-}
-/* Light button on a dark surface (e.g. the home banner). */
-.btn-light {
-  @apply bg-background text-foreground;
 }
 .btn-ghost {
   @apply bg-transparent text-foreground ring-1 ring-line hover:bg-surface;

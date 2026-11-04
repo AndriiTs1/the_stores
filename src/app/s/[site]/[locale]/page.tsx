@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CollectionBanner } from "@/components/collection-banner";
+import { HomeBanner } from "@/components/home-banner";
 import { ProductGrid } from "@/components/product-grid";
 import { TrustStrip } from "@/components/trust-strip";
 import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
@@ -24,9 +24,9 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
   const limit = itemLimit(n);
   // Categories and brands are listed only when they have something to show.
   const withProducts = { products: { some: { status: "ACTIVE" as const } } };
-  const [{ cards, hasMore }, featured, categories, brands] = await Promise.all([
+  const bannerTitle = tr(store.bannerTitle, locale);
+  const [{ cards, hasMore }, categories, brands] = await Promise.all([
     getProductCards(store.id, locale, {}, limit),
-    db.collection.findFirst({ where: { storeId: store.id, featured: true }, orderBy: { position: "asc" } }),
     db.category.findMany({ where: { storeId: store.id, ...withProducts }, orderBy: { position: "asc" } }),
     db.brand.findMany({ where: { storeId: store.id, ...withProducts }, orderBy: { position: "asc" } }),
   ]);
@@ -34,16 +34,19 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
   return (
     <>
       <h1 className="sr-only">{store.name}</h1>
-      {featured && (
-        <CollectionBanner
-          eyebrow={tr(featured.name, locale)}
-          headline={tr(featured.headline, locale) || tr(featured.name, locale)}
-          href={`${base}/${locale}/collections/${featured.slug}`}
+      {bannerTitle && (
+        <HomeBanner
+          eyebrow={tr(store.bannerEyebrow, locale)}
+          title={bannerTitle}
+          text={tr(store.bannerText, locale)}
+          // The catalogue is this page: the button jumps to the product grid below.
+          href="#new-arrivals"
           cta={d.discover}
         />
       )}
-      <section aria-labelledby="new-arrivals">
-        <h2 id="new-arrivals" className="mb-4 text-xl font-bold sm:text-2xl">
+      {/* scroll-mt: the sticky header (two rows on phones) must not cover the heading after the jump. */}
+      <section id="new-arrivals" aria-labelledby="new-arrivals-title" className="scroll-mt-32 md:scroll-mt-24">
+        <h2 id="new-arrivals-title" className="mb-4 text-xl font-bold sm:text-2xl">
           {d.newArrivals}
         </h2>
         {cards.length === 0 ? (
@@ -55,7 +58,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
             base={base}
             locale={locale}
             currency={store.currency}
-            labels={{ soldOut: d.soldOut, sizes: d.sizes, showMore: d.showMore }}
+            labels={{ soldOut: d.soldOut, newBadge: d.newBadge, sizes: d.sizes, showMore: d.showMore }}
             preloadFirst
           />
         )}

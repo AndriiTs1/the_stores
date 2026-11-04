@@ -27,6 +27,8 @@ export type ProductCardData = {
   price: number;
   compareAt: number | null;
   soldOut: boolean;
+  /** "New" badge on the card. */
+  isNew: boolean;
 };
 
 const cardInclude = {
@@ -64,6 +66,7 @@ export function toProductCard(p: CardRow, locale: string): ProductCardData {
     price: cheapest?.price ?? 0,
     compareAt: cheapest?.compareAtPrice ?? null,
     soldOut: stock.every(({ n }) => n === 0),
+    isNew: p.isNew,
   };
 }
 

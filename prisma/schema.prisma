@@ -52,6 +52,12 @@ model Store {
   returnDays       Int? // e.g. 30 → "returns within 30 days"
   originalGoods    Boolean  @default(false) // the store states it sells new, original goods
   paymentMethods   String[] @default([]) // enabled in Stripe, e.g. ["card", "twint"]; shown only with Stripe configured
+  // Storefront home. Localized texts; a part without text is not shown.
+  announcement     Json? // bar above the header, on every page
+  announcementHref String? // its link: a path after the locale ("/" = catalogue, "/collections/sport") or a full URL
+  bannerEyebrow    Json? // home banner: small line above the title
+  bannerTitle      Json? // banner title; no title → no banner
+  bannerText       Json? // one line under the title
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -146,6 +152,7 @@ model Product {
   // Translations of option values; variants store the German value.
   // e.g. { "color": { "Schwarz": { "fr": "Noir", "it": "Nero", "en": "Black" } } }
   optionValues Json?
+  isNew        Boolean       @default(false) // "New" badge on the product card
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 

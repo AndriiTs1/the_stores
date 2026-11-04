@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" width="300" height="400">
 <rect width="300" height="400" fill="#efeeea"/>
 <g color="#b0262f" transform=""><path d="M90 90 L122 74 Q118 40 150 36 Q182 40 178 74 L210 90 L246 232 L222 238 L205 152 L205 320 L95 320 L95 152 L78 238 L54 232 Z" fill="#b0262f"/><path d="M115 240 L185 240 L195 285 L105 285 Z" fill="#000" opacity=".12"/><path d="M138 76 Q150 96 162 76" fill="none" stroke="#000" stroke-opacity=".25" stroke-width="3"/></g>
-<text x="284" y="386" text-anchor="end" font-family="system-ui, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#000" fill-opacity=".28">DEMO</text>
+
 </svg>

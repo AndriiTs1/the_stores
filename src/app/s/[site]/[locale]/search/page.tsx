@@ -44,7 +44,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/s
           base={base}
           locale={locale}
           currency={store.currency}
-          labels={{ soldOut: d.soldOut, sizes: d.sizes, showMore: d.showMore }}
+          labels={{ soldOut: d.soldOut, newBadge: d.newBadge, sizes: d.sizes, showMore: d.showMore }}
         />
       )}
     </>

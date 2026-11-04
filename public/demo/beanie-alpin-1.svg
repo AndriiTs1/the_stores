@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 400" width="300" height="400">
 <rect width="300" height="400" fill="#efeeea"/>
 <g color="#232323" transform=""><path d="M92 250 Q92 132 150 126 Q208 132 208 250 Z" fill="#232323"/><circle cx="150" cy="116" r="18" fill="currentColor"/><circle cx="150" cy="116" r="18" fill="#000" opacity=".2"/><rect x="88" y="232" width="124" height="36" rx="6" fill="currentColor"/><rect x="88" y="232" width="124" height="36" rx="6" fill="#000" opacity=".2"/></g>
-<text x="284" y="386" text-anchor="end" font-family="system-ui, sans-serif" font-size="12" font-weight="700" letter-spacing="2" fill="#000" fill-opacity=".28">DEMO</text>
+
 </svg>

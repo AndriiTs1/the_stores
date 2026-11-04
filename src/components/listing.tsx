@@ -42,7 +42,7 @@ export async function Listing({
           base={base}
           locale={locale}
           currency={currency}
-          labels={{ soldOut: d.soldOut, sizes: d.sizes, showMore: d.showMore }}
+          labels={{ soldOut: d.soldOut, newBadge: d.newBadge, sizes: d.sizes, showMore: d.showMore }}
           preloadFirst
         />
       )}
