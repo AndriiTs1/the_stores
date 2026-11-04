@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HomeBanner } from "@/components/home-banner";
-import { ProductGrid } from "@/components/product-grid";
+import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { TrustStrip } from "@/components/trust-strip";
 import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import { db } from "@/lib/db";
@@ -58,7 +58,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
             base={base}
             locale={locale}
             currency={store.currency}
-            labels={{ soldOut: d.soldOut, newBadge: d.newBadge, sizes: d.sizes, showMore: d.showMore }}
+            labels={gridLabels(d)}
             preloadFirst
           />
         )}

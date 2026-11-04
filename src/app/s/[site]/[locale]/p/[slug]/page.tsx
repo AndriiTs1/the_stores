@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { ProductImage } from "@/components/product-image";
+import { WishlistButton } from "@/components/wishlist";
 import { db } from "@/lib/db";
 import { getDict, optionLabel, optionValueLabel, tr } from "@/lib/i18n";
 import { inventoryInclude, onlineStock } from "@/lib/inventory";
@@ -66,7 +67,14 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
       </div>
 
       <div className="min-w-0">
-        <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{title}</h1>
+        <div className="flex items-start justify-between gap-2">
+          <h1 className="min-w-0 hyphens-auto break-words text-2xl font-black tracking-tight sm:text-3xl">{title}</h1>
+          <WishlistButton
+            productId={product.id}
+            labels={{ add: d.wishlistAdd, remove: d.wishlistRemove }}
+            className="-mr-2.5 -mt-1.5"
+          />
+        </div>
         <p className="mt-1 text-xs text-muted">{d.vatIncluded}</p>
         <div className="mt-6">
           <VariantPicker

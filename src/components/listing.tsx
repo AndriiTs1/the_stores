@@ -1,5 +1,5 @@
 import type { Prisma } from "@/generated/prisma/client";
-import { ProductGrid } from "@/components/product-grid";
+import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import type { Dict } from "@/lib/i18n";
 
@@ -45,7 +45,7 @@ export async function Listing({
           base={base}
           locale={locale}
           currency={currency}
-          labels={{ soldOut: d.soldOut, newBadge: d.newBadge, sizes: d.sizes, showMore: d.showMore }}
+          labels={gridLabels(d)}
           preloadFirst
         />
       )}

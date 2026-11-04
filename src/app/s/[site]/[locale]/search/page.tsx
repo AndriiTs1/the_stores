@@ -1,4 +1,4 @@
-import { ProductGrid } from "@/components/product-grid";
+import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { getProductCards, itemLimit, moreHref, searchProductIds, searchQuery } from "@/lib/catalog";
 import { getDict } from "@/lib/i18n";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
@@ -44,7 +44,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/s
           base={base}
           locale={locale}
           currency={store.currency}
-          labels={{ soldOut: d.soldOut, newBadge: d.newBadge, sizes: d.sizes, showMore: d.showMore }}
+          labels={gridLabels(d)}
         />
       )}
     </>

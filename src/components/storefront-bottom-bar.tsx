@@ -1,8 +1,9 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { House, SquaresFour } from "@phosphor-icons/react";
+import { Heart, House, SquaresFour } from "@phosphor-icons/react";
 import { BottomBar, type BottomBarItem } from "@/components/bottom-bar";
+import { useWishlist } from "@/components/wishlist";
 import { activeTab, storePath, tabHref, type Tab } from "@/lib/storefront-tabs";
 
 /** The storefront's phone bar: one item per tab (lib/storefront-tabs), the current tab red. */
@@ -13,9 +14,10 @@ export function StorefrontBottomBar({
 }: {
   base: string;
   locale: string;
-  labels: { start: string; categories: string };
+  labels: { start: string; categories: string; wishlist: string; wishlistLabel: string };
 }) {
   const current = activeTab(storePath(usePathname(), base), locale);
+  const saved = useWishlist().ids?.length ?? 0;
   const item = (id: Tab, label: string, icon: BottomBarItem["icon"]): BottomBarItem => ({
     id,
     label,
@@ -24,5 +26,17 @@ export function StorefrontBottomBar({
     active: current === id,
   });
 
-  return <BottomBar items={[item("start", labels.start, House), item("categories", labels.categories, SquaresFour)]} />;
+  return (
+    <BottomBar
+      items={[
+        item("start", labels.start, House),
+        item("categories", labels.categories, SquaresFour),
+        {
+          ...item("wishlist", labels.wishlist, Heart),
+          badge: saved,
+          ariaLabel: saved ? labels.wishlistLabel.replace("{n}", String(saved)) : undefined,
+        },
+      ]}
+    />
+  );
 }
