@@ -189,7 +189,8 @@ export function LanguagePicker({
 }
 
 /**
- * From md, in the header: DE FR IT EN in a grey pill, fixed 32px buttons, the active one black.
+ * From md, in the header (and in the phone menu): DE FR IT EN as plain text, each a 44×44 tap area; the active one
+ * red and bold with a 2px red line under the letters.
  * Links to the same page in that language (no scroll to top), remembered in the NEXT_LOCALE cookie.
  */
 export function LanguageButtons({ locales, current, base }: { locales: string[]; current: string; base: string }) {
@@ -221,7 +222,7 @@ function LanguageButtonRow({
 }) {
   return (
     // translate="no": browser translators must not turn "DE FR IT EN" into other words.
-    <div translate="no" className="flex rounded-full bg-surface p-1">
+    <div translate="no" className="flex">
       {locales.map((l) => (
         <Link
           key={l}
@@ -232,8 +233,10 @@ function LanguageButtonRow({
           aria-label={LANGUAGE_NAMES[l] ?? l}
           aria-current={l === current ? "true" : undefined}
           onClick={() => remember(l)}
-          className={`inline-flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold uppercase ${
-            l === current ? "bg-foreground text-background" : "text-muted hover:text-foreground"
+          className={`inline-flex size-11 items-center justify-center rounded text-[13px] uppercase ${
+            l === current
+              ? "font-bold text-accent underline decoration-2 underline-offset-[6px]"
+              : "font-medium text-meta hover:text-foreground"
           }`}
         >
           {l}

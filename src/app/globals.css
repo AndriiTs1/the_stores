@@ -12,7 +12,10 @@
   --accent-ink: #ffffff;
   --banner: #ecebe8; /* home banner background */
   --banner-text: #3d3d3b; /* home banner text line */
-  --ring: var(--foreground); /* focus outline */
+  --field-border: #d6d6d2; /* input fields at rest */
+  --ring: var(--accent); /* keyboard focus outline: 5.9:1 on white, 3.2:1 on the black bar and dock */
+  /* Focused input field: 1.5px red edge (1px border + 0.5px inset, so nothing moves) and a soft glow. */
+  --field-focus: inset 0 0 0 0.5px var(--accent), 0 0 0 3px rgb(200 16 46 / 0.15);
 }
 
 @theme inline {
@@ -21,6 +24,7 @@
   --color-muted: var(--muted);
   --color-meta: var(--meta);
   --color-line: var(--line);
+  --color-field-border: var(--field-border);
   --color-surface: var(--surface);
   --color-accent: var(--accent);
   --color-accent-ink: var(--accent-ink);
@@ -81,7 +85,13 @@ h2 {
   @apply bg-transparent text-foreground ring-1 ring-line hover:bg-surface;
 }
 .input {
-  @apply h-10 w-full min-w-0 rounded-md border border-line bg-background px-3 text-sm focus:border-foreground aria-[invalid=true]:border-accent;
+  @apply h-10 w-full min-w-0 rounded-md border border-field-border bg-background px-3 text-sm focus:field-focus aria-[invalid=true]:border-accent;
+}
+/* Focus style of every input field: the red edge and glow replace the outline (mouse and keyboard alike). */
+@utility field-focus {
+  border-color: var(--accent);
+  box-shadow: var(--field-focus);
+  outline: none;
 }
 /* One line in every language, so a long French label never changes the form height. */
 .label {

@@ -71,8 +71,8 @@ export function QuantityStepper({
   return (
     <div className="stepper w-32">
       <div
-        className={`flex h-10 items-stretch overflow-hidden rounded-md border transition-shadow focus-within:border-foreground focus-within:ring-2 focus-within:ring-foreground/20 focus-within:ring-offset-2 ${
-          invalid ? "border-accent" : "border-line"
+        className={`flex h-10 items-stretch overflow-hidden rounded-md border transition-shadow focus-within:field-focus ${
+          invalid ? "border-accent" : "border-field-border"
         } ${disabled ? "opacity-40" : ""}`}
       >
         <button
