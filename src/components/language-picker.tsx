@@ -26,13 +26,24 @@ function useLocaleHref(base: string) {
   return (locale: string) => switchLocaleHref(here, base, locale);
 }
 
+/**
+ * One look for a language everywhere (header, phone menu, bottom-bar list): the current one red and bold with
+ * a 2px red line under the letters, no circle or plate; the others grey, dark on hover or press. 44×44 tap area.
+ */
+const languageClass = (selected: boolean) =>
+  `inline-flex size-11 items-center justify-center rounded text-[13px] uppercase ${
+    selected
+      ? "font-bold text-accent underline decoration-2 underline-offset-[6px]"
+      : "font-medium text-meta hover:text-foreground active:text-foreground"
+  }`;
+
 const remember = (locale: string) => {
   document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=${LOCALE_COOKIE_MAX_AGE}; samesite=lax`;
 };
 
 /**
- * Phone bottom bar: globe icon button + a capsule of language circles above it, exactly as wide as the
- * button and centred on it. (From md the header shows LanguageButtons instead.)
+ * Phone bottom bar: the language item opens a small white list of languages above it, centred on it.
+ * (From md the header shows LanguageButtons instead.)
  * Same press handling as our Select: toggle on the button, outside press closes without clicking through.
  */
 export function LanguagePicker({
@@ -40,7 +51,6 @@ export function LanguagePicker({
   current,
   base,
   buttonLabel,
-  onOpenChange,
   icon,
   triggerClassName,
   sideOffset = 8,
@@ -50,18 +60,18 @@ export function LanguagePicker({
   base: string;
   /** e.g. "Sprache: {name}" */
   buttonLabel: string;
-  /** Lets the bottom bar keep only one popup open (closes a "coming soon" hint). */
-  onOpenChange?: (open: boolean) => void;
-  /** Icon inside the round button (the dock passes a white Phosphor globe). */
+  /** Content of the button: the bottom bar passes a globe with its label. */
   icon: (open: boolean) => ReactNode;
   triggerClassName: string;
-  /** Distance from the button to the capsule; the dock uses it to sit 8px above the dock's edge. */
+  /** Distance from the button to the list; the bottom bar uses it to sit 8px above the bar's edge. */
   sideOffset?: number;
 }) {
   const router = useRouter();
   const hrefFor = useLocaleHref(base);
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
+  // The highlighted option gets a focus ring only when the list is used with the keyboard, not after a tap.
+  const [keyboard, setKeyboard] = useState(false);
   const listRef = useRef<HTMLUListElement>(null);
   const listId = useId();
   const optionId = (i: number) => `${listId}-o${i}`;
@@ -69,12 +79,11 @@ export function LanguagePicker({
 
   const show = () => {
     setActive(currentIndex);
+    setKeyboard(false);
     setOpen(true);
-    onOpenChange?.(true);
   };
   const close = () => {
     setOpen(false);
-    onOpenChange?.(false);
     triggerRef.current?.focus({ preventScroll: true });
   };
   const choose = (i: number) => {
@@ -90,6 +99,7 @@ export function LanguagePicker({
     const last = locales.length - 1;
     const move = (i: number) => {
       e.preventDefault();
+      setKeyboard(true);
       setActive(Math.min(last, Math.max(0, i)));
     };
     if (e.key === "ArrowDown") move(active + 1);
@@ -121,9 +131,10 @@ export function LanguagePicker({
             if (!open && ["Enter", " ", "ArrowDown", "ArrowUp"].includes(e.key)) {
               e.preventDefault();
               show();
+              setKeyboard(true);
             }
           }}
-          // Icon only: no border, background or tap highlight; round keyboard focus ring (focus-visible).
+          // No border, background or tap highlight; keyboard focus ring from --ring (focus-visible).
           className={triggerClassName}
         >
           {icon(open)}
@@ -147,7 +158,7 @@ export function LanguagePicker({
             close();
           }}
           onPointerDownOutside={(e) => e.preventDefault()} // handled by usePressToggle
-          className="z-50 w-[var(--radix-popover-trigger-width)] origin-bottom motion-safe:animate-[picker-in_150ms_ease-out]"
+          className="z-50 origin-bottom motion-safe:animate-[picker-in_150ms_ease-out]"
         >
           <ul
             ref={listRef}
@@ -158,7 +169,9 @@ export function LanguagePicker({
             aria-label={buttonLabel.replace("{name}", "").replace(/[\s:]+$/, "")}
             aria-activedescendant={optionId(active)}
             onKeyDown={onListKeyDown}
-            className="flex flex-col items-center gap-1 rounded-full border border-line bg-background py-1 shadow-md outline-none"
+            data-keyboard={keyboard || undefined}
+            // group: the highlighted option gets the red ring only while the list is used with the keyboard.
+            className="group flex flex-col items-center rounded-xl border border-divider bg-background p-1 shadow-[0_4px_16px_rgb(17_17_17/0.08)] outline-none"
           >
             {locales.map((l, i) => (
               <li
@@ -168,15 +181,14 @@ export function LanguagePicker({
                 lang={l}
                 aria-label={LANGUAGE_NAMES[l] ?? l}
                 aria-selected={l === current}
+                aria-current={l === current ? "true" : undefined}
                 data-highlighted={i === active || undefined}
                 onPointerDown={(e) => e.preventDefault()} // keep focus in the list
                 onPointerMove={(e) => e.pointerType === "mouse" && setActive(i)}
                 onClick={() => choose(i)} // click: a finger that scrolled never selects
-                className={`flex size-10 cursor-default select-none items-center justify-center rounded-full text-xs font-semibold uppercase ${
-                  l === current
-                    ? "bg-foreground text-background"
-                    : "text-muted hover:bg-surface data-[highlighted]:bg-surface data-[highlighted]:text-foreground"
-                }`}
+                className={`${languageClass(l === current)} cursor-default select-none ${
+                  l === current ? "" : "data-[highlighted]:text-foreground"
+                } group-data-[keyboard]:data-[highlighted]:outline-2 group-data-[keyboard]:data-[highlighted]:outline-[var(--ring)] group-data-[keyboard]:data-[highlighted]:outline-solid`}
               >
                 {l}
               </li>
@@ -189,8 +201,7 @@ export function LanguagePicker({
 }
 
 /**
- * From md, in the header (and in the phone menu): DE FR IT EN as plain text, each a 44×44 tap area; the active one
- * red and bold with a 2px red line under the letters.
+ * From md, in the header (and in the phone menu): DE FR IT EN as plain text in the shared language style.
  * Links to the same page in that language (no scroll to top), remembered in the NEXT_LOCALE cookie.
  */
 export function LanguageButtons({ locales, current, base }: { locales: string[]; current: string; base: string }) {
@@ -233,11 +244,7 @@ function LanguageButtonRow({
           aria-label={LANGUAGE_NAMES[l] ?? l}
           aria-current={l === current ? "true" : undefined}
           onClick={() => remember(l)}
-          className={`inline-flex size-11 items-center justify-center rounded text-[13px] uppercase ${
-            l === current
-              ? "font-bold text-accent underline decoration-2 underline-offset-[6px]"
-              : "font-medium text-meta hover:text-foreground"
-          }`}
+          className={languageClass(l === current)}
         >
           {l}
         </Link>

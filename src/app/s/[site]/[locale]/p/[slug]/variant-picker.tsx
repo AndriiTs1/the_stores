@@ -108,9 +108,10 @@ export function VariantPicker({
                   key={value}
                   type="button"
                   onClick={() => select(name, value)}
-                  className={`min-w-12 rounded-md px-3 py-2 text-sm font-medium ring-1 transition ${
-                    active ? "bg-foreground text-background ring-foreground" : "ring-line hover:ring-foreground"
-                  } ${available ? "" : "text-muted line-through"}`}
+                  // Selected: red ring and text, never a black fill.
+                  className={`min-w-12 rounded-md px-3 py-2 text-sm font-medium transition ${
+                    active ? "font-semibold text-accent ring-2 ring-accent" : "ring-1 ring-line hover:ring-foreground"
+                  } ${available ? "" : "line-through"} ${!active && !available ? "text-muted" : ""}`}
                 >
                   {valueLabels[name]?.[value] ?? value}
                 </button>

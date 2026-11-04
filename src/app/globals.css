@@ -7,6 +7,7 @@
   --muted: #6b6b6b;
   --meta: #5e5e5e; /* sizes and old prices on product cards */
   --line: #e6e6e6;
+  --divider: #e4e4e1; /* bottom bar edge, popup borders */
   --surface: #f5f5f4;
   --accent: #c8102e;
   --accent-ink: #ffffff;
@@ -24,6 +25,7 @@
   --color-muted: var(--muted);
   --color-meta: var(--meta);
   --color-line: var(--line);
+  --color-divider: var(--divider);
   --color-field-border: var(--field-border);
   --color-surface: var(--surface);
   --color-accent: var(--accent);

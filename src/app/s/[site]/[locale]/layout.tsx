@@ -55,8 +55,8 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
       // Browser translators (e.g. Google Translate) rewrite lang/class on <html>; only this element's attributes.
       suppressHydrationWarning
     >
-      {/* Phones: room for the floating dock (12 + 56 + 12px + safe area) so nothing hides under it. */}
-      <body className="flex min-h-full flex-col pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-0">
+      {/* Phones: room for the bottom bar (56px + safe area) so nothing hides under it. */}
+      <body className="flex min-h-full flex-col pb-[calc(56px+env(safe-area-inset-bottom))] md:pb-0">
         <CartCountProvider count={count}>
           {/* Scrolls away with the page; only the header below sticks. */}
           {/* The store's message (settings); none → no bar. */}
@@ -156,9 +156,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
             labels={{
               home: d.navHome,
               search: d.navSearch,
-              favorites: d.navFavorites,
-              account: d.navAccount,
-              comingSoon: d.comingSoon,
+              language: d.language,
               languageButton: d.languageButton,
             }}
           />
