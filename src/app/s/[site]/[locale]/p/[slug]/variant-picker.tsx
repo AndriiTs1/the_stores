@@ -109,7 +109,7 @@ export function VariantPicker({
                   type="button"
                   onClick={() => select(name, value)}
                   // Selected: red ring and text, never a black fill.
-                  className={`min-w-12 rounded-md px-3 py-2 text-sm font-medium transition ${
+                  className={`min-w-12 rounded-md px-3 py-2 text-sm font-medium transition-[box-shadow,color] ${
                     active ? "font-semibold text-accent ring-2 ring-accent" : "ring-1 ring-line hover:ring-foreground"
                   } ${available ? "" : "line-through"} ${!active && !available ? "text-muted" : ""}`}
                 >

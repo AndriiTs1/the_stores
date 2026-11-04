@@ -81,8 +81,9 @@ h2 {
   outline: none;
 }
 
+/* transition-opacity, not transition: that would also animate outline-color, so keyboard focus flashed white first. */
 .btn {
-  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md bg-foreground px-5 py-3 text-sm font-semibold uppercase tracking-wide text-background transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
+  @apply inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md bg-foreground px-5 py-3 text-sm font-semibold uppercase tracking-wide text-background transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40;
 }
 .btn-accent {
   @apply bg-accent text-accent-ink;
