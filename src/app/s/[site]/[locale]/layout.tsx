@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Suspense } from "react";
 import "../../../globals.css";
 import { fontVariables } from "../../../fonts";
+import { AccountContent } from "@/components/account-content";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
@@ -152,7 +153,9 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                 wishlist: d.wishlist,
                 wishlistLabel: d.wishlistLabel,
                 account: d.account,
+                close: d.close,
               }}
+              accountPanel={<AccountContent locales={store.locales} locale={locale} base={base} d={d} heading="h3" />}
             />
           </WishlistProvider>
         </CartCountProvider>

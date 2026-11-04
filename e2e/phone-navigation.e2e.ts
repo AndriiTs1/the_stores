@@ -1,14 +1,13 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 const STORE = "/s/demo/de";
-const bar = (page: import("@playwright/test").Page) => page.getByRole("navigation").filter({ has: page.locator("a[href$='/account']") });
+const bar = (page: Page) => page.locator("nav.fixed");
 
-test("the four tabs lead to their screens and mark themselves active", async ({ page }) => {
+test("the tabs lead to their screens and mark themselves active", async ({ page }) => {
   await page.goto(STORE);
   const tabs = [
     { name: "Kategorien", url: /\/de\/categories$/, heading: "Kategorien" },
     { name: "Merkliste", url: /\/de\/wishlist$/, heading: "Merkliste" },
-    { name: "Konto", url: /\/de\/account$/, heading: "Konto" },
     { name: "Start", url: /\/de$/, heading: null },
   ];
   for (const tab of tabs) {
@@ -33,10 +32,52 @@ test("wishlist: a heart adds, the tab counts, a second tap removes, empty state 
   await expect(page.getByText("Noch nichts gemerkt")).toBeVisible();
 });
 
-test("changing the language on the account screen stays on it", async ({ page }) => {
+test("account panel: opens, switches to French and stays open, Esc closes and returns focus", async ({ page }) => {
+  await page.goto(STORE);
+  const account = bar(page).getByRole("button", { name: "Konto" });
+  await account.tap();
+  const panel = page.getByRole("dialog", { name: "Konto" });
+  await expect(panel).toBeVisible();
+  await expect(account).toHaveAttribute("aria-expanded", "true");
+  await expect(panel.getByRole("button", { name: "Schliessen" })).toBeFocused();
+
+  await panel.getByRole("link", { name: "Français" }).tap();
+  await expect(page).toHaveURL(/\/s\/demo\/fr#account$/);
+  const panelFr = page.getByRole("dialog", { name: "Compte" });
+  await expect(panelFr).toBeVisible();
+  await expect(panelFr.getByText("Ma commande")).toBeVisible();
+  await expect(panelFr.getByRole("link", { name: "Français" })).toHaveAttribute("aria-current", "true");
+
+  await page.keyboard.press("Escape");
+  await expect(panelFr).toBeHidden();
+  await expect(page).toHaveURL(/\/s\/demo\/fr$/);
+  await expect(bar(page).getByRole("button", { name: "Compte" })).toBeFocused();
+});
+
+test("account panel: the dim layer and the back gesture close it; Tab stays inside", async ({ page }) => {
+  await page.goto(STORE);
+  const account = bar(page).getByRole("button", { name: "Konto" });
+  await account.tap();
+  const panel = page.getByRole("dialog", { name: "Konto" });
+  await expect(panel).toBeVisible();
+  for (let i = 0; i < 15; i++) await page.keyboard.press("Tab");
+  expect(await panel.evaluate((p) => p.contains(document.activeElement))).toBe(true);
+
+  await page.mouse.click(20, 400); // the dimmed page left of the panel
+  await expect(panel).toBeHidden();
+  await expect(page).toHaveURL(/\/s\/demo\/de$/);
+
+  await account.tap();
+  await expect(panel).toBeVisible();
+  await page.goBack();
+  await expect(panel).toBeHidden();
+  await expect(page).toHaveURL(/\/s\/demo\/de$/);
+});
+
+test("/account as an address shows the same menu as a page", async ({ page }) => {
   await page.goto(`${STORE}/account`);
-  await page.getByRole("link", { name: "Français" }).tap();
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Konto");
+  await expect(page.getByRole("main").getByRole("link", { name: "Rückgabe" })).toBeVisible();
+  await page.getByRole("main").getByRole("link", { name: "Français" }).tap();
   await expect(page).toHaveURL(/\/fr\/account$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Compte");
-  await expect(page.getByRole("link", { name: "Français" })).toHaveAttribute("aria-current", "true");
 });

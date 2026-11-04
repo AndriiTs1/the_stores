@@ -5,21 +5,16 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { useSyncExternalStore } from "react";
 import { LANGUAGE_NAMES } from "@/lib/i18n";
 import { LOCALE_COOKIE, LOCALE_COOKIE_MAX_AGE, switchLocaleHref } from "@/lib/locale-path";
+import { readHash, subscribeHash } from "@/lib/url-hash";
 
-const subscribeHash = (cb: () => void) => {
-  window.addEventListener("hashchange", cb);
-  return () => window.removeEventListener("hashchange", cb);
-};
-
-/** href of the current page in another language: only the locale segment changes, query and #hash stay. */
+/**
+ * href of the current page in another language: only the locale segment changes, query and #hash stay
+ * (so an open account panel, #account, is open again in the new language).
+ */
 function useLocaleHref(base: string) {
   const pathname = usePathname();
   const search = useSearchParams().toString();
-  const hash = useSyncExternalStore(
-    subscribeHash,
-    () => window.location.hash,
-    () => "",
-  );
+  const hash = useSyncExternalStore(subscribeHash, readHash, () => "");
   const here = `${pathname}${search ? `?${search}` : ""}${hash}`;
   return (locale: string) => switchLocaleHref(here, base, locale);
 }

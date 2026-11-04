@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useSyncExternalStore, type ComponentType } from "react";
+import { useSyncExternalStore, type ComponentType, type Ref } from "react";
 import type { IconWeight } from "@phosphor-icons/react";
 
 /** On a phone the on-screen keyboard shrinks the visual viewport; hide the bar meanwhile. */
@@ -25,7 +25,9 @@ export type BottomBarItem = {
   /** Visible label under the icon. */
   label: string;
   icon: ComponentType<{ size?: number; weight?: IconWeight; "aria-hidden"?: boolean }>;
-  href: string;
+  /** A link to a screen, or a button that opens a dialog (`dialog`). */
+  href?: string;
+  dialog?: { onOpen: () => void; open: boolean; controls: string; ref: Ref<HTMLButtonElement> };
   active?: boolean;
   /** Red counter on the icon; hidden at 0. */
   badge?: number;
@@ -52,16 +54,12 @@ export function BottomBar({ items }: { items: BottomBarItem[] }) {
       }`}
     >
       <ul className="grid h-14" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
-        {items.map(({ id, label, icon: Icon, href, active = false, badge = 0, ariaLabel }) => (
-          <li key={id} className="flex min-w-0">
-            <Link
-              href={href}
-              aria-current={active ? "page" : undefined}
-              aria-label={ariaLabel}
-              className={`flex h-14 w-full min-w-0 flex-col items-center justify-center gap-1 rounded [-webkit-tap-highlight-color:transparent] ${
-                active ? "text-accent" : "text-meta active:text-foreground"
-              }`}
-            >
+        {items.map(({ id, label, icon: Icon, href, dialog, active = false, badge = 0, ariaLabel }) => {
+          const className = `flex h-14 w-full min-w-0 flex-col items-center justify-center gap-1 rounded [-webkit-tap-highlight-color:transparent] ${
+            active || dialog?.open ? "text-accent" : "text-meta active:text-foreground"
+          }`;
+          const face = (
+            <>
               <span className="relative">
                 <Icon aria-hidden size={22} />
                 {badge > 0 && (
@@ -75,9 +73,36 @@ export function BottomBar({ items }: { items: BottomBarItem[] }) {
               </span>
               {/* Long words (e.g. "Catégories") shrink to an ellipsis instead of widening the column. */}
               <span className="max-w-full truncate px-1 text-[11px] leading-none">{label}</span>
-            </Link>
-          </li>
-        ))}
+            </>
+          );
+          return (
+            <li key={id} className="flex min-w-0">
+              {dialog ? (
+                <button
+                  ref={dialog.ref}
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-expanded={dialog.open}
+                  aria-controls={dialog.controls}
+                  aria-label={ariaLabel}
+                  onClick={dialog.onOpen}
+                  className={className}
+                >
+                  {face}
+                </button>
+              ) : (
+                <Link
+                  href={href ?? "#"}
+                  aria-current={active ? "page" : undefined}
+                  aria-label={ariaLabel}
+                  className={className}
+                >
+                  {face}
+                </Link>
+              )}
+            </li>
+          );
+        })}
       </ul>
     </nav>
   );
