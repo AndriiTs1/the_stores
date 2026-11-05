@@ -49,13 +49,18 @@
 /*
  * Appearing/disappearing scrollbar must not shift the page.
  * No tap highlight: iOS / Android draw a dark box around a tapped link; pressed states come from :active instead.
+ * overflow-x: clip, a safety net only: nothing may be wider than the screen (e2e/mobile-layout checks it), but if
+ * something is, the page must not pan sideways. clip, not hidden: hidden makes a scroll container and breaks the
+ * sticky header.
  */
 html {
   scrollbar-gutter: stable;
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
+  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
