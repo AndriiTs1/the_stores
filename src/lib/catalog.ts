@@ -30,6 +30,8 @@ export type ProductCardData = {
   price: number;
   compareAt: number | null;
   soldOut: boolean;
+  /** Second Story items: their condition (one piece each). */
+  preloved: { condition: string } | null;
 };
 
 export const cardInclude = {
@@ -68,6 +70,7 @@ export function toProductCard(p: CardRow, locale: string): ProductCardData {
     price: cheapest?.price ?? 0,
     compareAt: cheapest?.compareAtPrice ?? null,
     soldOut: stock.every(({ n }) => n === 0),
+    preloved: p.line === "PRELOVED" && p.condition ? { condition: p.condition } : null,
   };
 }
 

@@ -3,7 +3,7 @@ import { ProductCard } from "@/components/product-card";
 import type { ProductCardData } from "@/lib/catalog";
 import type { ReactNode } from "react";
 import { StableText } from "@/components/stable-text";
-import { dictVariants, type Dict } from "@/lib/i18n";
+import { conditionLabels, dictVariants, type Dict } from "@/lib/i18n";
 
 export type GridLabels = {
   soldOut: string;
@@ -11,6 +11,11 @@ export type GridLabels = {
   soldOutBadge: ReactNode;
   sizes: string;
   onlyLeft: string;
+  oneSize: string;
+  oneOfAKind: string;
+  secondStory: string;
+  /** Condition labels by ItemCondition. */
+  conditions: Record<string, string>;
   showMore: ReactNode;
   wishlistAdd: string;
   wishlistRemove: string;
@@ -22,6 +27,10 @@ export const gridLabels = (d: Dict, locales?: readonly string[]): GridLabels => 
   soldOutBadge: <StableText text={d.soldOut} variants={dictVariants("soldOut", locales)} />,
   sizes: d.sizes,
   onlyLeft: d.onlyLeft,
+  oneSize: d.oneSize,
+  oneOfAKind: d.oneOfAKind,
+  secondStory: d.lineSecondStory,
+  conditions: conditionLabels(d),
   showMore: <StableText text={d.showMore} variants={dictVariants("showMore", locales)} />,
   wishlistAdd: d.wishlistAdd,
   wishlistRemove: d.wishlistRemove,

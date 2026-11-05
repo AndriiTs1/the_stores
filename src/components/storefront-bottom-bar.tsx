@@ -6,6 +6,7 @@ import { Heart, House, PlusCircle, SquaresFour, User } from "@phosphor-icons/rea
 import { AccountPanel, openAccountPanel, useAccountPanelOpen } from "@/components/account-panel";
 import { BottomBar, type BottomBarItem } from "@/components/bottom-bar";
 import { goHome } from "@/components/home-link";
+import { useLineHref } from "@/components/line-switcher";
 import { useWishlist } from "@/components/wishlist";
 import { activeTab, storePath, tabHref, type Tab } from "@/lib/storefront-tabs";
 
@@ -43,11 +44,12 @@ export function StorefrontBottomBar({
   const accountButton = useRef<HTMLButtonElement>(null);
   const current = activeTab(storePath(usePathname(), base), locale);
   const saved = useWishlist().ids?.length ?? 0;
+  const keepLine = useLineHref(); // Start and Kategorien keep the chosen part of the store (?line=)
   const item = (id: Tab, label: string, icon: BottomBarItem["icon"]): BottomBarItem => ({
     id,
     label,
     icon,
-    href: tabHref(id, base, locale),
+    href: id === "start" || id === "categories" ? keepLine(tabHref(id, base, locale)) : tabHref(id, base, locale),
     active: current === id,
   });
 
@@ -56,7 +58,7 @@ export function StorefrontBottomBar({
       <BottomBar
         items={[
           // Start on the home page scrolls back to the top; elsewhere it opens the home page at the top (goHome).
-          { ...item("start", labels.start, House), onClick: (e) => goHome(e, tabHref("start", base, locale)) },
+          { ...item("start", labels.start, House), onClick: (e) => goHome(e, keepLine(tabHref("start", base, locale))) },
           item("categories", labels.categories, SquaresFour),
           { ...item("sell", labels.sell, SellIcon), ariaLabel: labels.sellLabel },
           {

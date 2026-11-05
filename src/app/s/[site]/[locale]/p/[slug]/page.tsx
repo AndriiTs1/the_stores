@@ -3,7 +3,7 @@ import { PhotoCredits, photoCredits } from "@/components/photo-credits";
 import { ProductImage } from "@/components/product-image";
 import { WishlistButton } from "@/components/wishlist";
 import { db } from "@/lib/db";
-import { getDict, optionLabel, optionValueLabel, tr } from "@/lib/i18n";
+import { conditionLabels, getDict, optionLabel, optionValueLabel, tr } from "@/lib/i18n";
 import { inventoryInclude, onlineStock } from "@/lib/inventory";
 import { discountPercent, formatMoney } from "@/lib/money";
 import { getStoreAndLocale, languageAlternates } from "@/lib/tenant";
@@ -14,7 +14,10 @@ async function loadProduct(site: string, rawLocale: string, slug: string) {
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const product = await db.product.findUnique({
     where: { storeId_slug: { storeId: store.id, slug } },
-    include: { variants: { include: inventoryInclude, orderBy: { position: "asc" } } },
+    include: {
+      variants: { include: inventoryInclude, orderBy: { position: "asc" } },
+      seller: { select: { name: true } },
+    },
   });
   if (!product || product.status !== "ACTIVE") notFound();
   return { store, locale, product };
@@ -91,6 +94,15 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             className="-mr-2.5 -mt-1.5"
           />
         </div>
+        {product.line === "PRELOVED" && product.condition && (
+          <p className="mt-2">
+            <span className="inline-flex rounded bg-[#ecebe8] px-2 py-0.5 text-xs font-semibold">
+              <span translate="no">{d.lineSecondStory}</span> · {conditionLabels(d)[product.condition]} ·{" "}
+              {d.oneOfAKind}
+            </span>
+          </p>
+        )}
+        <p className="mt-2 text-sm text-meta">{d.soldBy.replace("{name}", product.seller.name)}</p>
         <p className="mt-1 text-xs text-muted">{d.vatIncluded}</p>
         <div className="mt-6">
           <VariantPicker

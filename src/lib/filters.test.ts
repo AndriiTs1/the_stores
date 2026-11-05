@@ -26,6 +26,7 @@ describe("parseFilters", () => {
         page: "2",
       }),
     ).toEqual({
+      categories: [],
       sizes: ["M", "L"],
       min: 2000,
       max: 9990,
@@ -97,7 +98,7 @@ it("sortSizes: letters in order, then numbers, only once each", () => {
 });
 
 describe("matchesFilters", () => {
-  const p: ProductFacet = { id: "1", sizes: ["M", "L"], colors: ["Schwarz"], brand: "b", prices: [2990, 3490], sale: false };
+  const p: ProductFacet = { id: "1", category: "t-shirts", sizes: ["M", "L"], colors: ["Schwarz"], brand: "b", prices: [2990, 3490], sale: false };
 
   it("any value within a group, every group must match", () => {
     expect(matchesFilters(p, NO_FILTERS)).toBe(true);
@@ -148,4 +149,13 @@ it("listingHref keeps the page's own query", () => {
     "/s/demo/de/collections/herren?category=t-shirts&size=M",
   );
   expect(listingHref("/s/demo/de/sale", NO_FILTERS)).toBe("/s/demo/de/sale");
+});
+
+it("category filter: from ?category=, matched by slug", () => {
+  const f = parseFilters({ category: "t-shirts,hoodies,Bad Slug" });
+  expect(f.categories).toEqual(["t-shirts", "hoodies"]);
+  expect(filtersQuery(f)).toBe("?category=t-shirts,hoodies");
+  const p: ProductFacet = { id: "1", category: "jacken", sizes: [], colors: [], brand: null, prices: [1], sale: false };
+  expect(matchesFilters(p, f)).toBe(false);
+  expect(matchesFilters({ ...p, category: "hoodies" }, f)).toBe(true);
 });

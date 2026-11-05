@@ -49,10 +49,10 @@ for (const viewport of [
       await expect(page.getByRole("link", { name: "M entfernen" })).toBeVisible();
     });
 
-    test("only sale: every card shows a discount", async ({ page }) => {
-      await page.goto(HERREN, { waitUntil: "networkidle" });
+    test("only reduced: every card shows a discount", async ({ page }) => {
+      await page.goto(`${HERREN}?line=new`, { waitUntil: "networkidle" }); // Neu: some reduced, some not
       await filterButton(page).click();
-      await sheet(page).getByLabel("Nur Sale").check();
+      await sheet(page).getByLabel("Nur reduziert").check();
       await sheet(page).getByRole("button", { name: /Artikel anzeigen$/ }).click();
       await expect(page).toHaveURL(/[?&]sale=1/);
       const n = await cards(page).count();
@@ -114,7 +114,7 @@ test.describe("phone", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("the filter line sticks under the header while the page scrolls", async ({ page }) => {
-    await page.goto(HERREN, { waitUntil: "networkidle" });
+    await page.goto("/s/demo/de/products?line=new", { waitUntil: "networkidle" }); // long enough to scroll
     await page.evaluate(() => window.scrollTo(0, 900));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(500);
     const header = (await page.locator("header").boundingBox())!;
@@ -123,10 +123,10 @@ test.describe("phone", () => {
     expect(button.y).toBeLessThan(header.y + header.height + 30);
   });
 
-  test("Sale page: the same filters, no 'only sale' (all reduced)", async ({ page }) => {
-    await page.goto("/s/demo/de/sale", { waitUntil: "networkidle" });
+  test("Outlet listing: the same filters, no «only reduced» (all reduced)", async ({ page }) => {
+    await page.goto("/s/demo/de/products?line=outlet", { waitUntil: "networkidle" });
     await filterButton(page).click();
-    await expect(sheet(page).getByLabel("Nur Sale")).toHaveCount(0);
+    await expect(sheet(page).getByLabel("Nur reduziert")).toHaveCount(0);
     await expect(sheet(page).getByRole("heading", { name: "Grösse" })).toBeVisible();
   });
 });

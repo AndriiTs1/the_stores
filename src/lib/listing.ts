@@ -2,7 +2,7 @@ import type { Prisma } from "@/generated/prisma/client";
 import { cardInclude, toProductCard, type CardRow, type ProductCardData } from "./catalog";
 import { db } from "./db";
 import { filterWhere, LISTING_PAGE, sortProducts, sortSizes, type Filters, type ProductFacet } from "./filters";
-import { optionValueLabel } from "./i18n";
+import { optionValueLabel, tr } from "./i18n";
 import { onlineStock } from "./inventory";
 import { discountPercent } from "./money";
 
@@ -12,6 +12,7 @@ export type FacetOption = { value: string; label: string };
 export type ListingFacets = {
   /** Every product of the listing (before filtering), for the sheet's live count. */
   products: ProductFacet[];
+  categories: FacetOption[];
   sizes: FacetOption[];
   colors: FacetOption[];
   brands: FacetOption[];
@@ -27,6 +28,7 @@ const facetSelect = {
   id: true,
   optionValues: true,
   brand: { select: { slug: true, name: true } },
+  category: { select: { slug: true, name: true, position: true } },
   variants: {
     select: {
       price: true,
@@ -83,6 +85,7 @@ function facets(rows: Prisma.ProductGetPayload<{ select: typeof facetSelect }>[]
   const sizeLabels = new Map<string, string>();
   const colorLabels = new Map<string, string>();
   const brands = new Map<string, string>();
+  const categories = new Map<string, { label: string; position: number }>();
   const prices: number[] = [];
   const products = rows.map((p): ProductFacet => {
     const sizes = new Set<string>();
@@ -100,8 +103,10 @@ function facets(rows: Prisma.ProductGetPayload<{ select: typeof facetSelect }>[]
       }
     }
     if (p.brand) brands.set(p.brand.slug, p.brand.name);
+    if (p.category) categories.set(p.category.slug, { label: tr(p.category.name, locale), position: p.category.position });
     return {
       id: p.id,
+      category: p.category?.slug ?? null,
       sizes: [...sizes],
       colors: [...colors],
       brand: p.brand?.slug ?? null,
@@ -113,6 +118,9 @@ function facets(rows: Prisma.ProductGetPayload<{ select: typeof facetSelect }>[]
   const onSale = products.filter((p) => p.sale).length;
   return {
     products,
+    categories: [...categories]
+      .sort(([, a], [, b]) => a.position - b.position)
+      .map(([value, { label }]) => ({ value, label })),
     sizes: sortSizes([...sizeLabels.keys()]).map((value) => ({ value, label: sizeLabels.get(value)! })),
     colors: [...colorLabels].map(([value, label]) => ({ value, label })).sort(byLabel),
     brands: [...brands].map(([value, label]) => ({ value, label })).sort(byLabel),

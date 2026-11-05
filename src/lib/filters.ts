@@ -2,7 +2,8 @@ import type { Prisma } from "@/generated/prisma/client";
 
 /**
  * Filters and sorting of a product listing (category, collection, brand, sale, all products), carried in the query:
- * ?size=M,L&min=20&max=100&sale=1&brand=muster-sport&color=Schwarz&sort=price_asc&page=2
+ * ?category=t-shirts&size=M,L&min=20&max=100&sale=1&brand=muster-sport&color=Schwarz&sort=price_asc&page=2
+ * (sale=1: only reduced products, by the former price, in any line).
  * Pure functions, shared by the server (Prisma filtering) and the filter sheet (its live count).
  */
 
@@ -14,6 +15,8 @@ export const LISTING_PAGE = 24;
 const MAX_PAGE = 20;
 
 export type Filters = {
+  /** Category slugs (the item type: the first filter group). */
+  categories: string[];
   sizes: string[];
   /** Price bounds in Rappen (the query has CHF). */
   min: number | null;
@@ -29,6 +32,7 @@ export type Filters = {
 };
 
 export const NO_FILTERS: Filters = {
+  categories: [],
   sizes: [],
   min: null,
   max: null,
@@ -73,6 +77,7 @@ export function parseFilters(query: Query): Filters {
   const sort = first(query.sort);
   const page = Number.parseInt(first(query.page) ?? "", 10);
   return {
+    categories: list(query.category, SLUG),
     sizes: list(query.size, SIZE),
     min,
     max,
@@ -89,6 +94,7 @@ const chf = (rappen: number) => (rappen % 100 === 0 ? String(rappen / 100) : (ra
 /** The query for `filters` ("" for none), defaults left out; `page` only when asked for (load more). */
 export function filtersQuery(filters: Filters, { page = false }: { page?: boolean } = {}): string {
   const q = new URLSearchParams();
+  if (filters.categories.length) q.set("category", filters.categories.join(","));
   if (filters.sizes.length) q.set("size", filters.sizes.join(","));
   if (filters.min != null) q.set("min", chf(filters.min));
   if (filters.max != null) q.set("max", chf(filters.max));
@@ -109,7 +115,7 @@ export function listingHref(path: string, filters: Filters, options?: { page?: b
 
 /** How many filter values are chosen (the number on the Filter button); a price range counts once. */
 export function filterCount(f: Filters): number {
-  return f.sizes.length + f.brands.length + f.colors.length + (f.sale ? 1 : 0) + (f.min != null || f.max != null ? 1 : 0);
+  return f.categories.length + f.sizes.length + f.brands.length + f.colors.length + (f.sale ? 1 : 0) + (f.min != null || f.max != null ? 1 : 0);
 }
 
 export const hasFilters = (f: Filters) => filterCount(f) > 0;
@@ -133,6 +139,8 @@ export function sortSizes(sizes: string[]): string[] {
 /** What a filter looks at of one product (built on the server, matched in the sheet for its live count). */
 export type ProductFacet = {
   id: string;
+  /** Category slug. */
+  category: string | null;
   /** Sizes with stock that can be sold online. */
   sizes: string[];
   colors: string[];
@@ -148,6 +156,7 @@ export type ProductFacet = {
  * The same rules as filterWhere(), which the server runs in the database.
  */
 export function matchesFilters(p: ProductFacet, f: Filters): boolean {
+  if (f.categories.length && !(p.category && f.categories.includes(p.category))) return false;
   if (f.sizes.length && !p.sizes.some((s) => f.sizes.includes(s))) return false;
   if (f.colors.length && !p.colors.some((c) => f.colors.includes(c))) return false;
   if (f.brands.length && !(p.brand && f.brands.includes(p.brand))) return false;
@@ -164,6 +173,7 @@ const inStockOnline = { inventory: { some: { quantity: { gt: 0 }, location: { se
 /** The filters as a Prisma condition on products (always combined with the store and the listing's own condition). */
 export function filterWhere(f: Filters): Prisma.ProductWhereInput {
   const and: Prisma.ProductWhereInput[] = [];
+  if (f.categories.length) and.push({ category: { slug: { in: f.categories } } });
   if (f.sizes.length) {
     and.push({
       variants: {

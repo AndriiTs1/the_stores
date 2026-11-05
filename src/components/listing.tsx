@@ -4,6 +4,8 @@ import { FilterBar, type FilterLabels } from "@/components/filter-bar";
 import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { hasFilters, listingHref, NO_FILTERS, parseFilters } from "@/lib/filters";
 import { dictVariants, plural, type Dict } from "@/lib/i18n";
+import { parseLine, resolveLine, withLine } from "@/lib/lines";
+import { storeLines } from "@/lib/store-lines";
 import { getListing } from "@/lib/listing";
 
 /** The filter sheet's texts from the page dictionary. */
@@ -18,11 +20,12 @@ const filterLabels = (d: Dict, locales: readonly string[]): FilterLabels => ({
     newest: d.sortNewest,
     discount: d.sortDiscount,
   },
+  category: d.category,
   size: d.size,
   price: d.price,
   priceFrom: d.priceFrom,
   priceTo: d.priceTo,
-  onlySale: d.onlySale,
+  onlySale: d.onlyReduced,
   brand: d.brand,
   color: d.color,
   showOne: d.showItemsOne,
@@ -67,7 +70,13 @@ export async function Listing({
   locales: readonly string[];
 }) {
   const filters = parseFilters(query);
-  const { cards, total, hasMore, facets } = await getListing(storeId, locale, where, filters);
+  // The part of the store (Outlet, Neu, Second Story): as asked in ?line=, else the first with products. The asked
+  // line stays in every link of the page (filters, pills, load more).
+  const asked = parseLine(query.line);
+  const line = resolveLine(asked, await storeLines(storeId));
+  path = withLine(path, asked);
+  const scoped: Prisma.ProductWhereInput = line ? { AND: [where, { line }] } : where;
+  const { cards, total, hasMore, facets } = await getListing(storeId, locale, scoped, filters);
   return (
     <>
       <h1 className="hyphens-auto break-words text-2xl font-black tracking-tight md:text-[32px]">

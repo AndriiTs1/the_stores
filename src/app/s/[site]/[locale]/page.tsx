@@ -6,6 +6,8 @@ import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { dictVariants, getDict, tr } from "@/lib/i18n";
+import { parseLine, resolveLine, withLine } from "@/lib/lines";
+import { storeLines } from "@/lib/store-lines";
 import { storeHref } from "@/lib/store-link";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 
@@ -16,17 +18,20 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
 
 export default async function StoreHome({ params, searchParams }: PageProps<"/s/[site]/[locale]">) {
   const { site, locale: rawLocale } = await params;
-  const { n } = await searchParams;
+  const { n, line: lineParam } = await searchParams;
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
   const limit = itemLimit(n);
-  // Categories and brands are listed only when they have something to show.
+  // The part of the store shown (Outlet by default, else the first with products); its links keep the asked one.
+  const asked = parseLine(lineParam);
+  const line = resolveLine(asked, await storeLines(store.id));
+  const inLine = line ? { line } : {};
+  // Brands are listed only when they have something to show.
   const withProducts = { products: { some: { status: "ACTIVE" as const } } };
   const bannerTitle = store.bannerEnabled ? tr(store.bannerTitle, locale) : "";
-  const [{ cards, hasMore }, categories, brands] = await Promise.all([
-    getProductCards(store.id, locale, {}, limit),
-    db.category.findMany({ where: { storeId: store.id, ...withProducts }, orderBy: { position: "asc" } }),
+  const [{ cards, hasMore }, brands] = await Promise.all([
+    getProductCards(store.id, locale, inLine, limit),
     // Only brands with a logo: the row is a logo wall, shown from two logos on.
     db.brand.findMany({
       where: { storeId: store.id, logoUrl: { not: null }, ...withProducts },
@@ -56,7 +61,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
             {d.ourSelection}
           </h2>
           <Link
-            href={`${base}/${locale}/products`}
+            href={withLine(`${base}/${locale}/products`, asked)}
             className="shrink-0 rounded text-sm font-semibold underline-offset-4 hover:text-accent hover:underline"
           >
             <span className="md:hidden">{d.viewAllShort}</span>
@@ -68,7 +73,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
         ) : (
           <ProductGrid
             cards={cards}
-            moreHref={hasMore ? moreHref(`${base}/${locale}`, limit) : null}
+            moreHref={hasMore ? withLine(moreHref(`${base}/${locale}`, limit), asked) : null}
             base={base}
             locale={locale}
             currency={store.currency}
@@ -77,28 +82,6 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
           />
         )}
       </section>
-
-      {categories.length > 0 && (
-        <section aria-labelledby="categories" className="mt-8 md:mt-12">
-          <h2 id="categories" className="mb-4 text-xl font-bold sm:text-2xl">
-            {d.categories}
-          </h2>
-          {/* One row that scrolls sideways (snapping, no scrollbar) and runs to the screen edges, 16px in on phones.
-              Each pill as wide as its label in this language. */}
-          <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory scroll-px-4 gap-2 overflow-x-auto px-4 sm:-mx-6 sm:scroll-px-6 sm:px-6 lg:-mx-10 lg:scroll-px-10 lg:px-10">
-            {categories.map((c) => (
-              <li key={c.id} className="shrink-0 snap-start">
-                <Link
-                  href={`${base}/${locale}/categories/${c.slug}`}
-                  className="inline-flex h-10 items-center whitespace-nowrap rounded-full px-4 text-sm font-medium ring-1 ring-inset ring-line hover:bg-surface"
-                >
-                  {tr(c.name, locale)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </section>
-      )}
 
       {brands.length >= 2 && (
         <section aria-labelledby="brands" className="mt-8 md:mt-12">

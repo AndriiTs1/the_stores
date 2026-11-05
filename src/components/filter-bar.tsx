@@ -17,6 +17,7 @@ export type FilterLabels = {
   filterVariants: string[];
   sort: string;
   sorts: Record<Sort, string>;
+  category: string;
   size: string;
   price: string;
   priceFrom: string;
@@ -70,6 +71,11 @@ export function FilterBar({
 
   // Chosen filters as pills: each links to the listing without that value.
   const pills: { key: string; label: string; href: string }[] = [
+    ...filters.categories.map((c) => ({
+      key: `category-${c}`,
+      label: facets.categories.find((o) => o.value === c)?.label ?? c,
+      href: listingHref(path, { ...filters, categories: filters.categories.filter((x) => x !== c), page: 1 }),
+    })),
     ...filters.sizes.map((s) => ({
       key: `size-${s}`,
       label: facets.sizes.find((o) => o.value === s)?.label ?? s,
@@ -256,7 +262,7 @@ function FilterSheet({
     }
   };
 
-  const toggle = (key: "sizes" | "brands" | "colors", value: string) =>
+  const toggle = (key: "categories" | "sizes" | "brands" | "colors", value: string) =>
     setDraft((d) => ({
       ...d,
       [key]: d[key].includes(value) ? d[key].filter((v) => v !== value) : [...d[key], value],
@@ -312,6 +318,17 @@ function FilterSheet({
         </div>
 
         <div className="flex-1 divide-y divide-line overflow-y-auto overscroll-contain px-4">
+          {facets.categories.length >= 2 && (
+            <Group title={labels.category}>
+              <div className="flex flex-wrap gap-2">
+                {facets.categories.map((o) => (
+                  <Chip key={o.value} on={draft.categories.includes(o.value)} onClick={() => toggle("categories", o.value)}>
+                    {o.label}
+                  </Chip>
+                ))}
+              </div>
+            </Group>
+          )}
           {facets.sizes.length >= 2 && (
             <Group title={labels.size}>
               <div className="flex flex-wrap gap-2">
