@@ -9,6 +9,7 @@ import { CartButton, CartCountProvider } from "@/components/cart-count";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
 import { SearchForm } from "@/components/search-form";
+import { SellHeaderLink } from "@/components/sell-link";
 import { StoreNav } from "@/components/store-nav";
 import { WishlistHeaderLink, WishlistProvider } from "@/components/wishlist";
 import { getCartCount } from "@/lib/cart";
@@ -104,6 +105,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                       <LanguageButtons locales={store.locales} current={locale} base={base} />
                     </Suspense>
                   </div>
+                  <SellHeaderLink href={`${base}/${locale}/sell`} label={d.sell} ariaLabel={d.sellLabel} />
                   <WishlistHeaderLink
                     href={`${base}/${locale}/wishlist`}
                     labels={{ wishlist: d.wishlist, count: d.wishlistLabel }}
@@ -154,6 +156,8 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               labels={{
                 start: d.navHome,
                 categories: d.categories,
+                sell: d.sell,
+                sellLabel: d.sellLabel,
                 wishlist: d.wishlist,
                 wishlistLabel: d.wishlistLabel,
                 account: d.account,

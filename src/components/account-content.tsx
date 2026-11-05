@@ -8,7 +8,7 @@ import type { Dict, DictKey } from "@/lib/i18n";
 const GROUPS: { slug: string; title: DictKey }[][] = [
   [
     { slug: "versand", title: "shipping" },
-    { slug: "rueckgabe", title: "trustReturns" },
+    { slug: "rueckgabe", title: "pageReturns" },
   ],
   [
     { slug: "hilfe", title: "helpContact" },

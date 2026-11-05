@@ -7,7 +7,7 @@ import type { DictKey } from "./i18n";
 export const STORE_PAGES = [
   { slug: "hilfe", title: "pageHelp", group: "service" },
   { slug: "versand", title: "shipping", group: "service" },
-  { slug: "rueckgabe", title: "trustReturns", group: "service" },
+  { slug: "rueckgabe", title: "pageReturns", group: "service" },
   { slug: "ueber-uns", title: "pageAbout", group: "service" },
   { slug: "impressum", title: "pageImprint", group: "legal" },
   { slug: "datenschutz", title: "pagePrivacy", group: "legal" },

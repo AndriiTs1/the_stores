@@ -7,6 +7,7 @@ test("the tabs lead to their screens and mark themselves active", async ({ page 
   await page.goto(STORE);
   const tabs = [
     { name: "Kategorien", url: /\/de\/categories$/, heading: "Kategorien" },
+    { name: "Verkaufen", url: /\/de\/sell$/, heading: "Bald: Verkaufe deine Kleidung" },
     { name: "Merkliste", url: /\/de\/wishlist$/, heading: "Merkliste" },
     { name: "Start", url: /\/de$/, heading: null },
   ];
@@ -132,8 +133,9 @@ test("account panel items: a tap shows no ring, Tab shows the grey one", async (
   expect([...rings]).toEqual(["solid 2px rgb(94, 94, 94)"]);
 });
 
-test("bar labels: line height at least 1.3, nothing cut off in any language", async ({ page }) => {
-  for (const locale of ["de", "fr", "it", "en"]) {
+test("bar labels: line height at least 1.3, nothing cut off in any language at 390 and 360 px", async ({ page }) => {
+  for (const [width, locale] of [390, 360].flatMap((w) => ["de", "fr", "it", "en"].map((l) => [w, l] as const))) {
+    await page.setViewportSize({ width, height: 844 });
     await page.goto(`/s/demo/${locale}`);
     const labels = await bar(page)
       .locator("span.truncate")
@@ -148,8 +150,62 @@ test("bar labels: line height at least 1.3, nothing cut off in any language", as
         }),
       );
     for (const l of labels) {
-      expect(l.ratio, `${locale} ${l.text}`).toBeGreaterThanOrEqual(1.3 - 0.001);
-      expect(l.cut, `${locale} ${l.text}`).toBe(false);
+      expect(l.ratio, `${width} ${locale} ${l.text}`).toBeGreaterThanOrEqual(1.3 - 0.001);
+      expect(l.cut, `${width} ${locale} ${l.text}`).toBe(false);
     }
   }
+});
+
+test("the raised Sell button opens the placeholder, marked active; nothing to fill in, not indexed", async ({
+  page,
+}) => {
+  await page.goto(STORE);
+  await expect(page.getByText("Gut zu wissen")).toHaveCount(0); // no shipping block on the home page
+  await expect(page.locator("main")).not.toContainText("Versand");
+
+  const sell = bar(page).getByRole("link", { name: "Artikel verkaufen" });
+  await expect(bar(page).locator("li")).toHaveText(["Start", "Kategorien", "Verkaufen", "Merkliste", "Konto"]);
+  await sell.tap();
+  await expect(page).toHaveURL(/\/s\/demo\/de\/sell$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bald: Verkaufe deine Kleidung");
+  await expect(page.getByText("Diese Funktion ist in Vorbereitung.")).toBeVisible();
+  await expect(sell).toHaveAttribute("aria-current", "page");
+  await expect(sell.locator("span.truncate")).toHaveCSS("color", "rgb(200, 16, 46)");
+  await expect(page.locator("main form, main input, main textarea, main select")).toHaveCount(0);
+  await expect(page.locator('meta[name="robots"]')).toHaveAttribute("content", /noindex/);
+
+  await page.getByRole("link", { name: "Zurück zum Shop" }).tap();
+  await expect(page).toHaveURL(/\/s\/demo\/de$/);
+});
+
+test("the Sell button and its page in every language", async ({ page }) => {
+  const names = {
+    fr: ["Vendre un article", "Bientôt\u00a0: vends tes vêtements"],
+    it: ["Vendi un articolo", "Presto: vendi i tuoi vestiti"],
+    en: ["Sell an item", "Coming soon: sell your clothes"],
+  };
+  for (const [locale, [label, title]] of Object.entries(names)) {
+    await page.goto(`/s/demo/${locale}`);
+    await bar(page).getByRole("link", { name: label }).tap();
+    await expect(page).toHaveURL(new RegExp(`/${locale}/sell$`));
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(title);
+  }
+});
+
+test.describe("desktop", () => {
+  test.use({ viewport: { width: 1440, height: 900 }, hasTouch: false });
+
+  test("the header Sell button sits left of the heart and leads to the placeholder", async ({ page }) => {
+    await page.goto(STORE);
+    await expect(page.locator("main")).not.toContainText("Versand");
+    const sell = page.locator("header").getByRole("link", { name: "Artikel verkaufen" });
+    const heart = page.locator("header").getByRole("link", { name: "Merkliste" });
+    const [s, h] = [await sell.boundingBox(), await heart.boundingBox()];
+    expect(s!.height).toBe(40);
+    expect(s!.x + s!.width).toBeLessThan(h!.x);
+    await expect(sell).toHaveText("Verkaufen");
+    await sell.click();
+    await expect(page).toHaveURL(/\/s\/demo\/de\/sell$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bald: Verkaufe deine Kleidung");
+  });
 });

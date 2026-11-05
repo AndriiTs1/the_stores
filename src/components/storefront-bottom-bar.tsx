@@ -5,11 +5,12 @@ import { useId, useRef, type ReactNode } from "react";
 import { Heart, House, SquaresFour, User } from "@phosphor-icons/react";
 import { AccountPanel, openAccountPanel, useAccountPanelOpen } from "@/components/account-panel";
 import { BottomBar, type BottomBarItem } from "@/components/bottom-bar";
+import { PlusIcon } from "@/components/sell-link";
 import { useWishlist } from "@/components/wishlist";
 import { activeTab, storePath, tabHref, type Tab } from "@/lib/storefront-tabs";
 
 /**
- * The storefront's phone bar: one item per tab (lib/storefront-tabs), the current tab red.
+ * The storefront's phone bar: one item per tab (lib/storefront-tabs), the current tab red; "Sell" in the middle, raised.
  * Account opens the side panel with `accountPanel` instead of going to /account.
  */
 export function StorefrontBottomBar({
@@ -23,6 +24,8 @@ export function StorefrontBottomBar({
   labels: {
     start: string;
     categories: string;
+    sell: string;
+    sellLabel: string;
     wishlist: string;
     wishlistLabel: string;
     account: string;
@@ -49,6 +52,7 @@ export function StorefrontBottomBar({
         items={[
           item("start", labels.start, House),
           item("categories", labels.categories, SquaresFour),
+          { ...item("sell", labels.sell, PlusIcon), raised: true, ariaLabel: labels.sellLabel },
           {
             ...item("wishlist", labels.wishlist, Heart),
             badge: saved,

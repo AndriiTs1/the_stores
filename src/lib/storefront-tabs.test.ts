@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { activeTab, storePath, tabHref, TABS } from "./storefront-tabs";
 
 describe("activeTab", () => {
-  it("each of the four tabs is active on its own screen", () => {
+  it("each of the five tabs is active on its own screen", () => {
     expect(activeTab("/de", "de")).toBe("start");
     expect(activeTab("/de/categories", "de")).toBe("categories");
+    expect(activeTab("/de/sell", "de")).toBe("sell");
     expect(activeTab("/de/wishlist", "de")).toBe("wishlist");
     expect(activeTab("/de/account", "de")).toBe("account");
   });
@@ -28,7 +29,7 @@ describe("activeTab", () => {
   });
 });
 
-describe("tabHref + storePath: moving between the four tabs", () => {
+describe("tabHref + storePath: moving between the five tabs", () => {
   it("every tab's link leads back to that tab, opened by path or on the store's own domain", () => {
     for (const base of ["/s/demo", ""]) {
       for (const tab of TABS) {

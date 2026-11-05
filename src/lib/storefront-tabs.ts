@@ -1,5 +1,5 @@
 /** The phone bottom bar's tabs, in order. */
-export const TABS = ["start", "categories", "wishlist", "account"] as const;
+export const TABS = ["start", "categories", "sell", "wishlist", "account"] as const;
 export type Tab = (typeof TABS)[number];
 
 /**
@@ -12,7 +12,13 @@ export function storePath(pathname: string, base: string): string {
 }
 
 /** Where a tab leads: a path after the locale ("" = the store home). */
-const TAB_PATH: Record<Tab, string> = { start: "", categories: "/categories", wishlist: "/wishlist", account: "/account" };
+const TAB_PATH: Record<Tab, string> = {
+  start: "",
+  categories: "/categories",
+  sell: "/sell",
+  wishlist: "/wishlist",
+  account: "/account",
+};
 
 export function tabHref(tab: Tab, base: string, locale: string): string {
   return `${base}/${locale}${TAB_PATH[tab]}`;
@@ -21,7 +27,7 @@ export function tabHref(tab: Tab, base: string, locale: string): string {
 /**
  * The tab a page belongs to, from its path inside the store ("/de/collections/herren"):
  * home and product pages → Start; the category screen and every listing reached from it → Categories;
- * the account screen and the information pages it links to → Account. Search, cart, checkout → none.
+ * the sell page → Sell; the account screen and the information pages it links to → Account. Search, cart, checkout → none.
  */
 export function activeTab(path: string, locale: string): Tab | null {
   const home = `/${locale}`;
@@ -29,6 +35,7 @@ export function activeTab(path: string, locale: string): Tab | null {
   const rest = path.slice(home.length).replace(/\/$/, "");
   if (rest === "" || rest.startsWith("/p/")) return "start";
   if (/^\/(categories|collections|brands|sale)(\/|$)/.test(rest)) return "categories";
+  if (/^\/sell(\/|$)/.test(rest)) return "sell";
   if (/^\/wishlist(\/|$)/.test(rest)) return "wishlist";
   if (/^\/(account|info)(\/|$)/.test(rest)) return "account";
   return null;
