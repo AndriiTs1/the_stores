@@ -54,6 +54,19 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
     ]),
   );
 
+  // Every language's label of each value: a value button keeps the width of its longest translation.
+  const valueVariants = Object.fromEntries(
+    product.optionNames.map((name) => [
+      name,
+      Object.fromEntries(
+        variants.map((v) => [
+          v.options[name],
+          store.locales.map((l) => optionValueLabel(product.optionValues, name, v.options[name], l)),
+        ]),
+      ),
+    ]),
+  );
+
   return (
     <div className="grid gap-8 md:grid-cols-2 md:gap-10 xl:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
       <div className="space-y-3">
@@ -84,6 +97,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             optionNames={product.optionNames}
             optionLabels={Object.fromEntries(product.optionNames.map((n) => [n, optionLabel(n, d)]))}
             valueLabels={valueLabels}
+            valueVariants={valueVariants}
             labels={{
               addToCart: d.addToCart,
               soldOut: d.soldOut,

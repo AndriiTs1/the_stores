@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { QuantityStepper } from "@/components/quantity-stepper";
+import { StableText } from "@/components/stable-text";
 import { discountLabel } from "@/lib/money";
 import { errorText } from "@/lib/validation";
 import type { AddToCartState } from "../../actions";
@@ -32,6 +33,7 @@ export function VariantPicker({
   optionNames,
   optionLabels,
   valueLabels,
+  valueVariants,
   labels,
   locale,
   action,
@@ -43,6 +45,8 @@ export function VariantPicker({
   optionLabels: Record<string, string>;
   /** option name → stored value → label in the page language */
   valueLabels: Record<string, Record<string, string>>;
+  /** option name → stored value → its label in every language of the store */
+  valueVariants: Record<string, Record<string, string[]>>;
   labels: Labels;
   locale: string;
   action: (state: AddToCartState, formData: FormData) => Promise<AddToCartState>;
@@ -122,7 +126,10 @@ export function VariantPicker({
                     active ? "font-semibold text-accent ring-2 ring-accent" : "ring-1 ring-line hover:ring-foreground"
                   } ${available ? "" : "line-through"} ${!active && !available ? "text-muted" : ""}`}
                 >
-                  {valueLabels[name]?.[value] ?? value}
+                  <StableText
+                    text={valueLabels[name]?.[value] ?? value}
+                    variants={valueVariants[name]?.[value] ?? []}
+                  />
                 </button>
               );
             })}

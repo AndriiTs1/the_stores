@@ -1,5 +1,6 @@
 import { gridLabels } from "@/components/product-grid";
-import { getDict } from "@/lib/i18n";
+import { StableText } from "@/components/stable-text";
+import { dictVariants, getDict } from "@/lib/i18n";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 import { WishlistView } from "./wishlist-view";
 
@@ -26,7 +27,12 @@ export default async function WishlistPage({ params }: PageProps<"/s/[site]/[loc
         locale={locale}
         base={base}
         currency={store.currency}
-        labels={{ ...gridLabels(d), empty: d.wishlistEmpty, emptyText: d.wishlistEmptyText, browse: d.ourSelection }}
+        labels={{
+          ...gridLabels(d, store.locales),
+          empty: d.wishlistEmpty,
+          emptyText: d.wishlistEmptyText,
+          browse: <StableText text={d.ourSelection} variants={dictVariants("ourSelection", store.locales)} />,
+        }}
       />
     </>
   );

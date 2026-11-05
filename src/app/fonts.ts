@@ -9,6 +9,7 @@ const display = Unbounded({
   subsets: ["latin", "latin-ext"],
   weight: ["500", "600", "700", "800"],
   display: "swap",
+  preload: true, // both subsets: accented letters (é, ü, à) never arrive later in a fallback font
   adjustFontFallback: true,
   variable: "--font-display",
 });
@@ -17,6 +18,7 @@ const sans = Manrope({
   subsets: ["latin", "latin-ext"],
   weight: ["400", "500", "600", "700"],
   display: "swap",
+  preload: true, // both subsets: accented letters (é, ü, à) never arrive later in a fallback font
   adjustFontFallback: true,
   variable: "--font-sans",
 });

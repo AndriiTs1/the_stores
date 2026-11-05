@@ -1,21 +1,26 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/product-card";
 import type { ProductCardData } from "@/lib/catalog";
-import type { Dict } from "@/lib/i18n";
+import type { ReactNode } from "react";
+import { StableText } from "@/components/stable-text";
+import { dictVariants, type Dict } from "@/lib/i18n";
 
 export type GridLabels = {
   soldOut: string;
+  /** The "sold out" badge, sized for its longest translation. */
+  soldOutBadge: ReactNode;
   sizes: string;
-  showMore: string;
+  showMore: ReactNode;
   wishlistAdd: string;
   wishlistRemove: string;
 };
 
-/** The grid's texts from the page dictionary. */
-export const gridLabels = (d: Dict): GridLabels => ({
+/** The grid's texts from the page dictionary; button and badge keep the size of their longest translation. */
+export const gridLabels = (d: Dict, locales?: readonly string[]): GridLabels => ({
   soldOut: d.soldOut,
+  soldOutBadge: <StableText text={d.soldOut} variants={dictVariants("soldOut", locales)} />,
   sizes: d.sizes,
-  showMore: d.showMore,
+  showMore: <StableText text={d.showMore} variants={dictVariants("showMore", locales)} />,
   wishlistAdd: d.wishlistAdd,
   wishlistRemove: d.wishlistRemove,
 });

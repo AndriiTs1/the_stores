@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-export type NavItem = { href: string; label: string };
+export type NavItem = { href: string; label: ReactNode };
 
 /** Header navigation (the store's collections); the current page is marked with aria-current. */
 export function StoreNav({

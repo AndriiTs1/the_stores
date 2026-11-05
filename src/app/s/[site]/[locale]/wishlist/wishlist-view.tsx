@@ -22,7 +22,7 @@ export function WishlistView({
   locale: string;
   base: string;
   currency: string;
-  labels: GridLabels & { empty: string; emptyText: string; browse: string };
+  labels: GridLabels & { empty: string; emptyText: string; browse: React.ReactNode };
 }) {
   const { ids } = useWishlist();
   const [cards, setCards] = useState<ProductCardData[] | null>(null);

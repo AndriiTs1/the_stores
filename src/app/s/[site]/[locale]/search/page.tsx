@@ -44,7 +44,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/s
           base={base}
           locale={locale}
           currency={store.currency}
-          labels={gridLabels(d)}
+          labels={gridLabels(d, store.locales)}
         />
       )}
     </>
