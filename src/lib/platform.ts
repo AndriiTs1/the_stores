@@ -11,15 +11,20 @@ export const DEFAULT_STORE_SLUG = (process.env.DEFAULT_STORE_SLUG || "demo").toL
 
 /**
  * Hosts that serve the platform itself rather than a store (the proxy sends their / to the default store):
- * ROOT_DOMAIN and www.ROOT_DOMAIN, and on a Vercel preview also the deployment's own addresses
- * (VERCEL_BRANCH_URL, VERCEL_URL), so previews need no ROOT_DOMAIN of their own. Production uses ROOT_DOMAIN only.
+ * ROOT_DOMAIN and www.ROOT_DOMAIN, and on Vercel also the deployment's own addresses: on a preview the branch and
+ * deployment URLs (VERCEL_BRANCH_URL, VERCEL_URL), so previews need no ROOT_DOMAIN of their own; in production the
+ * deployment URL (VERCEL_URL), so a production build opened by its own address (the dashboard thumbnail) works too.
  */
 export function rootHosts(env: Record<string, string | undefined> = process.env): Set<string> {
   const root = (env.ROOT_DOMAIN ?? "localhost:3000").toLowerCase();
   const hosts = new Set([root, `www.${root}`]);
-  if (env.VERCEL_ENV === "preview") {
-    for (const url of [env.VERCEL_BRANCH_URL, env.VERCEL_URL]) if (url) hosts.add(url.toLowerCase());
-  }
+  const own =
+    env.VERCEL_ENV === "preview"
+      ? [env.VERCEL_BRANCH_URL, env.VERCEL_URL]
+      : env.VERCEL_ENV === "production"
+        ? [env.VERCEL_URL]
+        : [];
+  for (const url of own) if (url) hosts.add(url.toLowerCase());
   return hosts;
 }
 
