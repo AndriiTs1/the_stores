@@ -15,10 +15,12 @@ export const demoStoreTexts = {
   announcementHref: "/", // the catalogue
   bannerEyebrow: d("Herbst / Winter 2026", "Automne / Hiver 2026", "Autunno / Inverno 2026", "Autumn / Winter 2026"),
   bannerTitle: d("Die Kollektion", "La collection", "La collezione", "The collection"),
+  bannerEnabled: false, // no banner on the home page; its texts stay for the link previews
   bannerText: d(
     "Sportbekleidung für jeden Tag.",
     "Des vêtements de sport pour tous les jours.",
     "Abbigliamento sportivo per ogni giorno.",
-    "Training wear for every day.",
+    "Sportswear for every day.",
   ),
 };
+

@@ -33,6 +33,8 @@ export type BottomBarItem = {
   badge?: number;
   /** Accessible name when the badge needs words (e.g. "Wishlist, 2 items"); else the label. */
   ariaLabel?: string;
+  /** For a link: runs on the click before the navigation (it may prevent it). */
+  onClick?: (e: React.MouseEvent) => void;
 };
 
 /**
@@ -54,7 +56,7 @@ export function BottomBar({ items }: { items: BottomBarItem[] }) {
       }`}
     >
       <ul className="grid h-14" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
-        {items.map(({ id, label, icon: Icon, href, dialog, active = false, badge = 0, ariaLabel }) => {
+        {items.map(({ id, label, icon: Icon, href, dialog, active = false, badge = 0, ariaLabel, onClick }) => {
           const className = `flex h-14 w-full min-w-0 flex-col items-center justify-center gap-1 rounded [-webkit-tap-highlight-color:transparent] ${
             active || dialog?.open ? "text-accent" : "text-meta active:text-foreground"
           }`;
@@ -96,6 +98,8 @@ export function BottomBar({ items }: { items: BottomBarItem[] }) {
                   href={href ?? "#"}
                   aria-current={active ? "page" : undefined}
                   aria-label={ariaLabel}
+                  onClick={onClick}
+                  scroll={onClick ? false : undefined}
                   className={className}
                 >
                   {face}

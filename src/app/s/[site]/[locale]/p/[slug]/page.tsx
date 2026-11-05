@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PhotoCredits, photoCredits } from "@/components/photo-credits";
 import { ProductImage } from "@/components/product-image";
 import { WishlistButton } from "@/components/wishlist";
 import { db } from "@/lib/db";
@@ -74,10 +75,11 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         {product.images.length > 1 && (
           <div className="grid grid-cols-4 gap-3">
             {product.images.slice(1).map((src) => (
-              <ProductImage key={src} src={src} title={title} sizes="(min-width: 768px) 12vw, 25vw" />
+              <ProductImage key={src} src={src} title={title} sizes="(min-width: 768px) 12vw, 25vw" eager />
             ))}
           </div>
         )}
+        <PhotoCredits credits={photoCredits(product.imageCredits)} label={d.photoCredit} />
       </div>
 
       <div className="min-w-0">

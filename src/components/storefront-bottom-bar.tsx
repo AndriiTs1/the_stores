@@ -5,6 +5,7 @@ import { useId, useRef, type ReactNode } from "react";
 import { Heart, House, PlusCircle, SquaresFour, User } from "@phosphor-icons/react";
 import { AccountPanel, openAccountPanel, useAccountPanelOpen } from "@/components/account-panel";
 import { BottomBar, type BottomBarItem } from "@/components/bottom-bar";
+import { goHome } from "@/components/home-link";
 import { useWishlist } from "@/components/wishlist";
 import { activeTab, storePath, tabHref, type Tab } from "@/lib/storefront-tabs";
 
@@ -54,7 +55,8 @@ export function StorefrontBottomBar({
     <>
       <BottomBar
         items={[
-          item("start", labels.start, House),
+          // Start on the home page scrolls back to the top; elsewhere it opens the home page at the top (goHome).
+          { ...item("start", labels.start, House), onClick: (e) => goHome(e, tabHref("start", base, locale)) },
           item("categories", labels.categories, SquaresFour),
           { ...item("sell", labels.sell, SellIcon), ariaLabel: labels.sellLabel },
           {

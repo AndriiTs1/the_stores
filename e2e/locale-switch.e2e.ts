@@ -21,7 +21,9 @@ const frame = (page: Page) =>
       "header nav[aria-label] a",
       "header form[role=search]",
       "nav.fixed li",
-      "main li",
+      // Not the home page's category pills: a sideways-scrolling row, each pill as wide as its label in the
+      // current language (by design, without StableText); nothing else sits beside or below them in the row.
+      "main li:not([aria-labelledby=categories] li)",
       "main a.btn, main button",
     ].flatMap((sel) =>
       [...document.querySelectorAll(sel)]

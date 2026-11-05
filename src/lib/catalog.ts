@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
 import { optionValueLabel, tr, trVariants } from "./i18n";
@@ -91,6 +92,11 @@ export async function getProductCards(
 
 /** Products on sale: at least one variant with a compare-at (former) price. */
 export const ON_SALE = { variants: { some: { compareAtPrice: { not: null } } } } satisfies Prisma.ProductWhereInput;
+
+/** Whether the store has an active product on sale: the Sale tile and menu item show only then. Once per request. */
+export const hasSale = cache(
+  async (storeId: string) => (await db.product.count({ where: { storeId, status: "ACTIVE", ...ON_SALE }, take: 1 })) > 0,
+);
 
 /** Link for "show more": the same listing with one more page. `params` keeps e.g. the search query. */
 export function moreHref(path: string, limit: number, params: Record<string, string> = {}) {

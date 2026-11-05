@@ -23,7 +23,7 @@ for (const viewport of [
 ]) {
   test(`keyboard focus is a 2px grey outline on every link and button (${viewport.width}px)`, async ({ page }) => {
     await page.setViewportSize(viewport);
-    await page.goto("/s/demo/de");
+    await page.goto("/s/demo/de", { waitUntil: "networkidle" }); // Tab only once the page is hydrated
     for (let i = 0; i < 25; i++) {
       await page.keyboard.press("Tab");
       const f = await focused(page);

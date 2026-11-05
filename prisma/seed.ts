@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { demoProductImages } from "./demo-photos";
 import { DEMO_SLUG, demoStoreTexts } from "./demo-store";
 import { seedRefusal } from "./seed-guard";
 
@@ -81,8 +82,6 @@ type SeedProduct = {
   compareAt?: number;
   colors: string[];
   sizes: keyof typeof SIZES;
-  /** Placeholder photos in public/demo: <slug>-1.svg (and -2.svg, shown on hover). */
-  images: 1 | 2;
   soldOut?: boolean;
   /** "New" badge on the card. */
   isNew?: boolean;
@@ -107,7 +106,6 @@ const products: SeedProduct[] = [
     price: 2990,
     colors: ["Schwarz", "Weiss"],
     sizes: "adult",
-    images: 2,
     isNew: true,
   },
   {
@@ -126,7 +124,6 @@ const products: SeedProduct[] = [
     compareAt: 14990,
     colors: ["Grün"],
     sizes: "adult",
-    images: 2,
   },
   {
     slug: "leggings-flow",
@@ -143,7 +140,6 @@ const products: SeedProduct[] = [
     price: 5990,
     colors: ["Schwarz", "Blau"],
     sizes: "women",
-    images: 2,
     isNew: true,
   },
   {
@@ -161,7 +157,6 @@ const products: SeedProduct[] = [
     price: 4990,
     colors: ["Rot"],
     sizes: "kids",
-    images: 2,
   },
   {
     slug: "hoodie-hilltop",
@@ -179,7 +174,6 @@ const products: SeedProduct[] = [
     compareAt: 10990,
     colors: ["Grau", "Schwarz"],
     sizes: "adult",
-    images: 2,
   },
   {
     slug: "sport-top-move",
@@ -196,7 +190,6 @@ const products: SeedProduct[] = [
     price: 3990,
     colors: ["Blau"],
     sizes: "women",
-    images: 1,
   },
   {
     slug: "trainingsjacke",
@@ -213,7 +206,6 @@ const products: SeedProduct[] = [
     price: 8990,
     colors: ["Blau"],
     sizes: "adult",
-    images: 2,
   },
   {
     slug: "kinder-t-shirt",
@@ -230,7 +222,6 @@ const products: SeedProduct[] = [
     price: 1990,
     colors: ["Blau"],
     sizes: "kids",
-    images: 1,
   },
   {
     slug: "rashguard-langarm",
@@ -247,7 +238,6 @@ const products: SeedProduct[] = [
     price: 6990,
     colors: ["Rot", "Schwarz"],
     sizes: "adult",
-    images: 2,
   },
   {
     slug: "jogginghose-basic",
@@ -264,7 +254,6 @@ const products: SeedProduct[] = [
     price: 5990,
     colors: ["Grau"],
     sizes: "adult",
-    images: 2,
   },
   {
     slug: "laufshirt-damen",
@@ -281,7 +270,6 @@ const products: SeedProduct[] = [
     price: 3490,
     colors: ["Rot"],
     sizes: "women",
-    images: 2,
   },
   {
     slug: "softshell-jacke",
@@ -298,7 +286,6 @@ const products: SeedProduct[] = [
     price: 15990,
     colors: ["Schwarz"],
     sizes: "adult",
-    images: 1,
     soldOut: true,
   },
   {
@@ -316,7 +303,6 @@ const products: SeedProduct[] = [
     price: 7990,
     colors: ["Beige"],
     sizes: "women",
-    images: 2,
   },
   {
     slug: "kinder-trainerhose",
@@ -333,7 +319,6 @@ const products: SeedProduct[] = [
     price: 3990,
     colors: ["Grau"],
     sizes: "kids",
-    images: 1,
   },
   {
     slug: "shorts-training",
@@ -350,7 +335,6 @@ const products: SeedProduct[] = [
     price: 4990,
     colors: ["Schwarz"],
     sizes: "adult",
-    images: 1,
   },
   {
     slug: "beanie-alpin",
@@ -367,7 +351,6 @@ const products: SeedProduct[] = [
     price: 2490,
     colors: ["Schwarz", "Rot"],
     sizes: "none",
-    images: 1,
   },
 ];
 
@@ -436,7 +419,7 @@ async function main() {
         title: p.title,
         description: p.description,
         status: "ACTIVE",
-        images: Array.from({ length: p.images }, (_, i) => `/demo/${p.slug}-${i + 1}.svg`),
+        ...demoProductImages(p.slug), // Unsplash photos (prisma/demo-photos.ts)
         optionNames: sizes.length ? ["size", "color"] : ["color"],
         optionValues: { color: Object.fromEntries(p.colors.map((c) => [c, COLORS[c]])) },
         isNew: p.isNew ?? false,

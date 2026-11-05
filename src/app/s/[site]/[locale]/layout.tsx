@@ -6,6 +6,7 @@ import { fontVariables } from "../../../fonts";
 import { AccountContent } from "@/components/account-content";
 import { MAIN_ID } from "@/components/account-panel";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
+import { CategoryPills } from "@/components/category-pills";
 import { FocusOnNavigate } from "@/components/focus-on-navigate";
 import { HomeLink } from "@/components/home-link";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
@@ -13,12 +14,14 @@ import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-
 import { SearchForm } from "@/components/search-form";
 import { SellHeaderLink } from "@/components/sell-link";
 import { StableText } from "@/components/stable-text";
-import { StoreNav } from "@/components/store-nav";
+import { StoreNav, type NavItem } from "@/components/store-nav";
 import { WishlistHeaderLink, WishlistProvider } from "@/components/wishlist";
 import { getCartCount } from "@/lib/cart";
+import { hasSale } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { dictVariants, getDict, tr, trVariants } from "@/lib/i18n";
 import { STORE_PAGES } from "@/lib/store-pages";
+import { storeHref } from "@/lib/store-link";
 import { getBase, getStore, getStoreAndLocale, requestOrigin, storeOpenGraph } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[locale]">): Promise<Metadata> {
@@ -34,13 +37,6 @@ export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[local
   };
 }
 
-/** A link from the store settings: a full URL as is, else a path after the locale ("/" = the catalogue). */
-function storeHref(href: string | null, base: string, locale: string): string | null {
-  if (!href) return null;
-  if (/^https?:\/\//.test(href)) return href;
-  return `${base}/${locale}${href === "/" ? "" : href}`;
-}
-
 // Content may extend under the iPhone home indicator; the bottom bar pads itself with safe-area-inset-bottom.
 export const viewport: Viewport = { viewportFit: "cover" };
 
@@ -50,17 +46,26 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
-  const [count, collections] = await Promise.all([
+  const [count, collections, sale] = await Promise.all([
     getCartCount(store.id),
     db.collection.findMany({ where: { storeId: store.id, inNav: true }, orderBy: { position: "asc" } }),
+    hasSale(store.id),
   ]);
   const announcement = tr(store.announcement, locale);
   const announcementHref = storeHref(store.announcementHref, base, locale);
   // Labels keep the width of their longest translation: switching the language moves nothing in the header.
-  const nav = collections.map((c) => ({
+  const nav: NavItem[] = collections.map((c) => ({
     href: `${base}/${locale}/collections/${c.slug}`,
     label: <StableText text={tr(c.name, locale)} variants={trVariants(c.name, store.locales)} />,
   }));
+  // Sale last, red, only while something is reduced. The same list makes the phone's category pills.
+  if (sale) {
+    nav.push({
+      href: `${base}/${locale}/sale`,
+      label: <StableText text={d.sale} variants={dictVariants("sale", store.locales)} />,
+      accent: true,
+    });
+  }
 
   return (
     <html
@@ -103,7 +108,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                   items={nav}
                   label={d.mainNav}
                   className="hidden shrink-0 gap-4 md:flex lg:gap-5"
-                  linkClassName="rounded text-sm font-semibold hover:text-accent aria-[current=page]:text-accent"
+                  // Current item: dark text with a 2px underline in its own colour (red for Sale); hover a thin one.
+                  // Every item is semibold already, so marking one never changes its width. The underline is set on
+                  // the label's spans too (**:): a translated label is an inline grid (StableText), which a link's
+                  // underline doesn't reach.
+                  linkClassName="rounded text-sm font-semibold decoration-2 underline-offset-[6px] **:decoration-2 **:underline-offset-[6px] aria-[current=page]:underline aria-[current=page]:**:underline not-aria-[current=page]:hover:underline not-aria-[current=page]:hover:decoration-1 not-aria-[current=page]:hover:**:underline not-aria-[current=page]:hover:**:decoration-1"
                 />
                 <SearchForm
                   action={`${base}/${locale}/search`}
@@ -135,14 +144,20 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                 </div>
               </div>
             </header>
+            <CategoryPills
+              pills={nav.map((item) => ({ href: item.href, label: item.label, sale: item.accent }))}
+              home={`${base}/${locale}`}
+              label={d.shopCategories}
+            />
 
             {/* tabIndex -1: after leaving the account panel by a link, focus starts here on the new page. */}
-            <main id={MAIN_ID} tabIndex={-1} className="container-page flex-1 py-6 sm:py-8">
+            {/* Bottom padding = the gap between home page sections (32px phones, 48px from md); the footer adds none. */}
+            <main id={MAIN_ID} tabIndex={-1} className="container-page flex-1 pt-6 pb-8 sm:pt-8 md:pb-12">
               {children}
             </main>
 
             {/* Phones: only the copyright line (the information pages are in the account panel). */}
-            <footer className="mt-10 border-t border-line">
+            <footer className="border-t border-line">
               <div className="container-page hidden gap-8 border-b border-line py-8 text-sm md:grid md:grid-cols-2 lg:grid-cols-4">
                 {(["service", "legal"] as const).map((group) => (
                   <nav key={group} aria-label={group === "service" ? d.footerService : d.footerLegal}>
