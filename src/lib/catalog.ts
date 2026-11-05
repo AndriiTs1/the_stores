@@ -1,6 +1,6 @@
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "./db";
-import { optionValueLabel, tr } from "./i18n";
+import { optionValueLabel, tr, trVariants } from "./i18n";
 import { inventoryInclude, onlineStock } from "./inventory";
 
 /** Products per "show more" step: 2 rows on a 4-column desktop grid, 6 on a 2-column phone grid. */
@@ -19,6 +19,8 @@ export type ProductCardData = {
   slug: string;
   brand: string | null;
   title: string;
+  /** The title in every language: the card keeps room for the longest (no jump when the language changes). */
+  titleVariants: string[];
   /** First two photos: the second is shown on hover. */
   images: string[];
   /** Sizes in variant order; a size is sold out when none of its variants (colours) is in stock. */
@@ -56,6 +58,7 @@ export function toProductCard(p: CardRow, locale: string): ProductCardData {
     slug: p.slug,
     brand: p.brand?.name ?? null,
     title: tr(p.title, locale),
+    titleVariants: trVariants(p.title),
     images: p.images.slice(0, 2),
     sizes: [...sizes].map(([value, inStock]) => ({
       label: optionValueLabel(p.optionValues, "size", value, locale),

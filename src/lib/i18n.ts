@@ -387,6 +387,16 @@ export function getDict(locale: string): Dict {
   return isLocale(locale) ? dict[locale] : dict.de;
 }
 
+/** One dictionary text in each of `locales`: the room a label needs in every language (components/stable-text). */
+export function dictVariants(key: DictKey, locales: readonly string[] = SUPPORTED_LOCALES): string[] {
+  return locales.map((l) => getDict(l)[key]);
+}
+
+/** A stored localized text ({ de, fr, … }) in each of `locales`, as tr() shows it. */
+export function trVariants(value: unknown, locales: readonly string[] = SUPPORTED_LOCALES): string[] {
+  return locales.map((l) => tr(value, l));
+}
+
 /** Option names are stored as keys ("size", "color"); translate the known ones. */
 export function optionLabel(name: string, d: Dict) {
   if (name === "size") return d.size;

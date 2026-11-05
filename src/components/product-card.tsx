@@ -1,5 +1,7 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { ProductImage } from "@/components/product-image";
+import { StableText } from "@/components/stable-text";
 import { WishlistButton } from "@/components/wishlist";
 import type { ProductCardData } from "@/lib/catalog";
 import { discountLabel, discountPercent, formatMoney } from "@/lib/money";
@@ -23,6 +25,7 @@ export function ProductCard({
   currency: string;
   labels: {
     soldOut: string;
+    soldOutBadge: ReactNode;
     sizes: string;
     wishlistAdd: string;
     wishlistRemove: string;
@@ -50,15 +53,21 @@ export function ProductCard({
               )}
               {card.soldOut && (
                 <span className="rounded bg-foreground px-2 py-0.5 text-xs font-semibold text-background">
-                  {labels.soldOut}
+                  {labels.soldOutBadge}
                 </span>
               )}
             </div>
           )}
         </div>
         <div className="mt-2 space-y-0.5 text-sm">
-          {/* Two lines at most; a long word breaks instead of widening the card. */}
-          <p className="line-clamp-2 hyphens-auto break-words font-semibold">{card.title}</p>
+          {/* Two lines at most; a long word breaks instead of widening the card. As high as the longest translation
+              needs, so a title that wraps in one language only doesn't push the next row down on a switch. */}
+          <StableText
+            block
+            text={card.title}
+            variants={card.titleVariants}
+            className="font-semibold [&>span]:line-clamp-2 [&>span]:hyphens-auto [&>span]:break-words"
+          />
           {card.sizes.length > 0 && (
             // One line: sizes that don't fit are cut off rather than wrapped.
             <p className="overflow-hidden whitespace-nowrap text-xs text-meta" aria-label={labels.sizes}>

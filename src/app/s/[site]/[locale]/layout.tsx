@@ -7,15 +7,17 @@ import { AccountContent } from "@/components/account-content";
 import { MAIN_ID } from "@/components/account-panel";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
 import { FocusOnNavigate } from "@/components/focus-on-navigate";
+import { HomeLink } from "@/components/home-link";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
 import { SearchForm } from "@/components/search-form";
 import { SellHeaderLink } from "@/components/sell-link";
+import { StableText } from "@/components/stable-text";
 import { StoreNav } from "@/components/store-nav";
 import { WishlistHeaderLink, WishlistProvider } from "@/components/wishlist";
 import { getCartCount } from "@/lib/cart";
 import { db } from "@/lib/db";
-import { getDict, tr } from "@/lib/i18n";
+import { dictVariants, getDict, tr, trVariants } from "@/lib/i18n";
 import { STORE_PAGES } from "@/lib/store-pages";
 import { getBase, getStore, getStoreAndLocale, requestOrigin, storeOpenGraph } from "@/lib/tenant";
 
@@ -54,7 +56,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   ]);
   const announcement = tr(store.announcement, locale);
   const announcementHref = storeHref(store.announcementHref, base, locale);
-  const nav = collections.map((c) => ({ href: `${base}/${locale}/collections/${c.slug}`, label: tr(c.name, locale) }));
+  // Labels keep the width of their longest translation: switching the language moves nothing in the header.
+  const nav = collections.map((c) => ({
+    href: `${base}/${locale}/collections/${c.slug}`,
+    label: <StableText text={tr(c.name, locale)} variants={trVariants(c.name, store.locales)} />,
+  }));
 
   return (
     <html
@@ -87,12 +93,12 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-2 py-2 lg:h-[72px] lg:flex-nowrap lg:gap-x-6 lg:py-0">
                 {/* Never truncated: shrinks by breakpoint and wraps to at most two lines on small phones. As wide as
                     the name (the focus ring hugs it); the cart is pushed right by its group's ml-auto. */}
-                <Link
+                <HomeLink
                   href={`${base}/${locale}`}
                   className="min-w-0 break-words rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg lg:text-xl"
                 >
                   {store.name}
-                </Link>
+                </HomeLink>
                 <StoreNav
                   items={nav}
                   label={d.mainNav}
@@ -111,7 +117,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                       <LanguageButtons locales={store.locales} current={locale} base={base} />
                     </Suspense>
                   </div>
-                  <SellHeaderLink href={`${base}/${locale}/sell`} label={d.sell} ariaLabel={d.sellLabel} />
+                  <SellHeaderLink
+                    href={`${base}/${locale}/sell`}
+                    label={<StableText text={d.sell} variants={dictVariants("sell", store.locales)} />}
+                    ariaLabel={d.sellLabel}
+                  />
                   <WishlistHeaderLink
                     href={`${base}/${locale}/wishlist`}
                     labels={{ wishlist: d.wishlist, count: d.wishlistLabel }}

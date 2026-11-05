@@ -216,7 +216,7 @@ test.describe("desktop", () => {
     await expect(sell).toHaveCSS("border-color", "rgb(94, 94, 94)");
     await expect(sell).toHaveCSS("background-color", "rgb(244, 244, 242)");
     expect(s!.x + s!.width).toBeLessThan(h!.x);
-    await expect(sell).toHaveText("Verkaufen");
+    await expect(sell).toHaveText("Verkaufen", { useInnerText: true }); // the visible text, not the other languages kept for its width
     await sell.click();
     await expect(page).toHaveURL(/\/s\/demo\/de\/sell$/);
     await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bald: Verkaufe deine Kleidung");

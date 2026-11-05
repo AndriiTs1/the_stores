@@ -12,7 +12,7 @@ export function HomeBanner({
   title: string;
   text: string;
   href: string;
-  cta: string;
+  cta: React.ReactNode;
 }) {
   return (
     <section

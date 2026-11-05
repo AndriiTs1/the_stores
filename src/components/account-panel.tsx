@@ -34,6 +34,12 @@ export function closeAccountPanel() {
   openedAt = null;
 }
 
+/** Closes it in place, without a history step: for a link that leaves for another page or the top of this one. */
+export function dropAccountPanel() {
+  if (readHash() === HASH) replaceHash("");
+  openedAt = null;
+}
+
 const subscribeNothing = () => () => {};
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])';
 

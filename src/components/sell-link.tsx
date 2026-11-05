@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 
 /** Outline plus, 2px stroke at any size (the header "Sell" button). */
 export function PlusIcon({ size = 24, "aria-hidden": ariaHidden }: { size?: number; "aria-hidden"?: boolean }) {
@@ -23,7 +24,7 @@ export function PlusIcon({ size = 24, "aria-hidden": ariaHidden }: { size?: numb
  * hover darkens the edge and adds the grey field fill. Only border and fill transition: transition-colors would
  * also animate the focus outline's colour.
  */
-export function SellHeaderLink({ href, label, ariaLabel }: { href: string; label: string; ariaLabel: string }) {
+export function SellHeaderLink({ href, label, ariaLabel }: { href: string; label: ReactNode; ariaLabel: string }) {
   return (
     <Link
       href={href}

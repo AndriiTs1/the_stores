@@ -1,10 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HomeBanner } from "@/components/home-banner";
+import { StableText } from "@/components/stable-text";
 import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import { db } from "@/lib/db";
-import { getDict, tr } from "@/lib/i18n";
+import { dictVariants, getDict, tr, trVariants } from "@/lib/i18n";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]">) {
@@ -38,7 +39,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
           text={tr(store.bannerText, locale)}
           // The catalogue is this page: the button jumps to the product grid below.
           href="#selection"
-          cta={d.discover}
+          cta={<StableText text={d.discover} variants={dictVariants("discover", store.locales)} />}
         />
       )}
       {/* scroll-mt: the sticky header (two rows on phones) must not cover the heading after the jump. */}
@@ -55,7 +56,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
             base={base}
             locale={locale}
             currency={store.currency}
-            labels={gridLabels(d)}
+            labels={gridLabels(d, store.locales)}
             preloadFirst
           />
         )}
@@ -73,7 +74,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
                   href={`${base}/${locale}/categories/${c.slug}`}
                   className="inline-flex rounded-full px-4 py-2 text-sm font-medium ring-1 ring-inset ring-line hover:bg-surface"
                 >
-                  {tr(c.name, locale)}
+                  <StableText text={tr(c.name, locale)} variants={trVariants(c.name, store.locales)} />
                 </Link>
               </li>
             ))}
