@@ -1,4 +1,4 @@
-import type { Viewport } from "next";
+import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import "../../../globals.css";
@@ -17,14 +17,18 @@ import { getCartCount } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { getDict, tr } from "@/lib/i18n";
 import { STORE_PAGES } from "@/lib/store-pages";
-import { getBase, getStore, getStoreAndLocale, requestOrigin } from "@/lib/tenant";
+import { getBase, getStore, getStoreAndLocale, requestOrigin, storeOpenGraph } from "@/lib/tenant";
 
-export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[locale]">) {
-  const { site } = await params;
+export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[locale]">): Promise<Metadata> {
+  const { site, locale } = await params;
   const store = await getStore(site);
   return {
     metadataBase: await requestOrigin(),
     title: { default: store.name, template: `%s · ${store.name}` },
+    description: tr(store.bannerText, locale) || undefined,
+    // Link previews: the image is opengraph-image.tsx next to this layout (a product page has its own).
+    openGraph: storeOpenGraph(store, locale),
+    twitter: { card: "summary_large_image" },
   };
 }
 

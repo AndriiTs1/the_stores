@@ -16,7 +16,7 @@ export const demoStoreTexts = {
   bannerEyebrow: d("Herbst / Winter 2026", "Automne / Hiver 2026", "Autunno / Inverno 2026", "Autumn / Winter 2026"),
   bannerTitle: d("Die Kollektion", "La collection", "La collezione", "The collection"),
   bannerText: d(
-    "Trainingskleidung für jeden Tag.",
+    "Sportbekleidung für jeden Tag.",
     "Des vêtements de sport pour tous les jours.",
     "Abbigliamento sportivo per ogni giorno.",
     "Training wear for every day.",

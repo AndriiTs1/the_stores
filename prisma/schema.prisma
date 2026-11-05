@@ -58,6 +58,9 @@ model Store {
   bannerEyebrow    Json? // home banner: small line above the title
   bannerTitle      Json? // banner title; no title → no banner
   bannerText       Json? // one line under the title
+  // Square store icon (browser tab, phone home screen): an image URL or a path in /public. None → the store's
+  // initials on the accent colour, generated.
+  iconUrl          String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
