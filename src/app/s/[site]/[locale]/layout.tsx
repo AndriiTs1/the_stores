@@ -151,12 +151,13 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
             />
 
             {/* tabIndex -1: after leaving the account panel by a link, focus starts here on the new page. */}
-            <main id={MAIN_ID} tabIndex={-1} className="container-page flex-1 py-6 sm:py-8">
+            {/* Bottom padding = the gap between home page sections (32px phones, 48px from md); the footer adds none. */}
+            <main id={MAIN_ID} tabIndex={-1} className="container-page flex-1 pt-6 pb-8 sm:pt-8 md:pb-12">
               {children}
             </main>
 
             {/* Phones: only the copyright line (the information pages are in the account panel). */}
-            <footer className="mt-10 border-t border-line">
+            <footer className="border-t border-line">
               <div className="container-page hidden gap-8 border-b border-line py-8 text-sm md:grid md:grid-cols-2 lg:grid-cols-4">
                 {(["service", "legal"] as const).map((group) => (
                   <nav key={group} aria-label={group === "service" ? d.footerService : d.footerLegal}>
