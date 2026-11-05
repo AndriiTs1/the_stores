@@ -29,3 +29,21 @@ for (const [path, locale, title] of [
     expect(await pngSize(request, image)).toEqual({ width: 1200, height: 630 });
   });
 }
+
+test("store icons: 32, 192 and 512 px, apple-touch-icon 180 px, no Next.js favicon", async ({ page, request }) => {
+  await page.goto("/s/demo/de");
+  const icons = await page
+    .locator('link[rel="icon"], link[rel="apple-touch-icon"]')
+    .evaluateAll((links) => links.map((l) => [l.getAttribute("rel"), l.getAttribute("sizes"), l.getAttribute("href")]));
+  expect(icons.map(([rel, sizes]) => `${rel} ${sizes}`)).toEqual([
+    "icon 32x32",
+    "icon 192x192",
+    "icon 512x512",
+    "apple-touch-icon 180x180",
+  ]);
+  for (const [, sizes, href] of icons) {
+    const px = Number(sizes!.split("x")[0]);
+    expect(await pngSize(request, href!)).toEqual({ width: px, height: px });
+  }
+  expect((await request.get("/favicon.ico")).status()).toBe(404);
+});
