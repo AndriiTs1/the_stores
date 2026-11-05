@@ -1,6 +1,15 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { DEMO_SLUG, demoStoreTexts } from "./demo-store";
+import { seedRefusal } from "./seed-guard";
+
+// Before connecting: the seed wipes the demo store and must never touch the production database.
+const refusal = seedRefusal(process.env);
+if (refusal) {
+  console.error(`Seed refused: ${refusal}.`);
+  process.exit(1);
+}
 
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
@@ -371,28 +380,13 @@ function stockFor(p: SeedProduct, index: number, size: string | null, si: number
 }
 
 async function main() {
-  await db.store.deleteMany({ where: { slug: "demo" } });
+  await db.store.deleteMany({ where: { slug: DEMO_SLUG } });
 
   // Trust-strip settings (returnDays, originalGoods, paymentMethods) stay unset: the demo makes no promises.
   const store = await db.store.create({
     data: {
-      slug: "demo",
-      name: "The stores",
-      announcement: d(
-        "Kollektion Herbst / Winter 2026",
-        "Collection automne / hiver 2026",
-        "Collezione autunno / inverno 2026",
-        "Autumn / Winter 2026 collection",
-      ),
-      announcementHref: "/", // the catalogue
-      bannerEyebrow: d("Herbst / Winter 2026", "Automne / Hiver 2026", "Autunno / Inverno 2026", "Autumn / Winter 2026"),
-      bannerTitle: d("Die Kollektion", "La collection", "La collezione", "The collection"),
-      bannerText: d(
-        "Trainingskleidung für jeden Tag.",
-        "Des vêtements de sport pour tous les jours.",
-        "Abbigliamento sportivo per ogni giorno.",
-        "Training wear for every day.",
-      ),
+      slug: DEMO_SLUG,
+      ...demoStoreTexts,
       contactEmail: "shop@example.ch",
       locations: { create: [{ name: "Lager Lugano", type: "WAREHOUSE" }] },
       categories: { create: categories.map((c, i) => ({ slug: c.slug, name: c.name, position: i })) },

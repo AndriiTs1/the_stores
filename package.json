@@ -12,6 +12,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "db:update-demo": "tsx prisma/update-demo.ts",
     "db:studio": "prisma studio",
     "postinstall": "prisma generate",
     "test": "vitest run",
