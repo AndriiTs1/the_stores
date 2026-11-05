@@ -41,11 +41,16 @@ describe("rootHosts", () => {
     expect(hosts.has("localhost:3000")).toBe(true);
   });
 
-  it("production and local runs ignore the Vercel addresses", () => {
+  it("production adds only its deployment address, next to ROOT_DOMAIN", () => {
     expect([...rootHosts({ VERCEL_ENV: "production", ROOT_DOMAIN: "example.ch", ...vercel })]).toEqual([
       "example.ch",
       "www.example.ch",
+      "thestores-abc123-team.vercel.app",
     ]);
+  });
+
+  it("local runs ignore the Vercel addresses", () => {
     expect(rootHosts({ VERCEL_ENV: "development", ...vercel }).size).toBe(2);
+    expect(rootHosts(vercel).size).toBe(2);
   });
 });
