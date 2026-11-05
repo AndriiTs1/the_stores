@@ -91,6 +91,8 @@ src/app/api/stripe/webhook/  вебхук Stripe
 ## Деплой на Vercel + Neon
 
 - `DATABASE_URL` (pooled от Neon, ветка по таблице выше), `ROOT_DOMAIN`, `ADMIN_PASSWORD`, ключи Stripe.
+- `ROOT_DOMAIN` нужен только Production. На превью (`VERCEL_ENV=preview`) корневыми считаются адреса самого деплоя
+  (`VERCEL_BRANCH_URL`, `VERCEL_URL`): `/` открывает магазин по умолчанию.
 - Миграции: `npm run db:deploy` (см. «Базы данных»).
 - Поддомены магазинов: wildcard-домен `*.your-domain.ch` в настройках Vercel.
 

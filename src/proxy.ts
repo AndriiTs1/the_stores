@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdminAuthorized } from "@/lib/admin-auth";
 import { isLocale } from "@/lib/i18n";
-import { DEFAULT_STORE_SLUG } from "@/lib/platform";
+import { DEFAULT_STORE_SLUG, rootHosts } from "@/lib/platform";
 
 /**
  * Multi-tenant routing.
@@ -12,11 +12,13 @@ import { DEFAULT_STORE_SLUG } from "@/lib/platform";
  *  demo.localhost:3000/de   → store "demo" on a subdomain of ROOT_DOMAIN
  *  shop.client-domain.ch/de          → store looked up by custom domain (Domain table)
  *  localhost:3000/platform     → internal list of stores (admin password)
+ *  <branch>.vercel.app      → on a Vercel preview, the deployment's own addresses act as ROOT_DOMAIN (rootHosts)
  *
  * Every store request ends up at /s/<site>/..., and x-store-base tells pages
  * which prefix to put in front of their links.
  */
 const ROOT_DOMAIN = (process.env.ROOT_DOMAIN ?? "localhost:3000").toLowerCase();
+const ROOT_HOSTS = rootHosts();
 
 export function proxy(req: NextRequest) {
   const host = (req.headers.get("host") ?? "").toLowerCase();
@@ -29,7 +31,7 @@ export function proxy(req: NextRequest) {
   if (pathname.startsWith("/s/")) {
     site = pathname.split("/")[2] ?? null;
     base = `/s/${site}`;
-  } else if (host !== ROOT_DOMAIN && host !== `www.${ROOT_DOMAIN}`) {
+  } else if (!ROOT_HOSTS.has(host)) {
     site = host.endsWith(`.${ROOT_DOMAIN}`)
       ? host.slice(0, -(ROOT_DOMAIN.length + 1))
       : host.split(":")[0]; // custom domain
