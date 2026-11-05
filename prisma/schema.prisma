@@ -28,6 +28,47 @@ enum LocationType {
   RETAIL
 }
 
+/**
+ * Which part of the store a product is shown in: Outlet, Neu, Second Story (PRELOVED; the name is a text only).
+ */
+enum ProductLine {
+  NEW
+  OUTLET
+  PRELOVED
+}
+
+/**
+ * Condition of a PRELOVED item (one item: on the product).
+ */
+enum ItemCondition {
+  NEW_WITH_TAGS
+  LIKE_NEW
+  VERY_GOOD
+  GOOD
+}
+
+enum SellerType {
+  HOUSE // the store itself
+  BRAND // a brand selling its own goods
+  SHOP // an outlet or retail shop
+  PRIVATE // a private person: PRELOVED only (checked in code and by a database trigger)
+}
+
+enum SellerStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  BLOCKED
+}
+
+/**
+ * What a crossed-out price compares with (Swiss price indication rules; legal check pending).
+ */
+enum CompareAtPriceType {
+  OUR_PREVIOUS
+  MANUFACTURER_RRP
+}
+
 enum OrderStatus {
   PENDING
   PAID
@@ -73,6 +114,7 @@ model Store {
   brands      Brand[]
   collections Collection[]
   products    Product[]
+  sellers     Seller[]
   locations   Location[]
   customers   Customer[]
   orders      Order[]
@@ -120,41 +162,68 @@ model Brand {
   logoUrl  String?
   position Int       @default(0)
   products Product[]
+  sellers  Seller[]
 
   @@unique([storeId, slug])
 }
 
 // Hand-picked groups of products: the header navigation (Herren, Damen, …) and the home banner.
 model Collection {
-  id       String    @id @default(cuid())
-  storeId  String
-  store    Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  slug     String
-  name     Json // Localized
-  headline Json? // Localized banner title; falls back to the name
-  position Int       @default(0)
-  inNav    Boolean   @default(false)
-  featured Boolean   @default(false) // the banner on the store's home page
+  id           String    @id @default(cuid())
+  storeId      String
+  store        Store     @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  slug         String
+  name         Json // Localized
+  headline     Json? // Localized banner title; falls back to the name
+  position     Int       @default(0)
+  inNav        Boolean   @default(false)
+  featured     Boolean   @default(false) // the banner on the store's home page
   // Category picture (URL or path in /public), kept for later; not shown yet.
   tileImageUrl String?
-  products Product[]
+  products     Product[]
 
   @@unique([storeId, slug])
 }
 
+/**
+ * Who sells a product: the store itself (HOUSE, one per store, slug "house"), a brand, a shop, a private person.
+ * A brand and a seller are different things: a shop may sell many brands; a BRAND seller may link its Brand.
+ */
+model Seller {
+  id        String       @id @default(cuid())
+  storeId   String
+  store     Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  type      SellerType
+  name      String
+  slug      String
+  status    SellerStatus @default(PENDING)
+  brandId   String?
+  brand     Brand?       @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  createdAt DateTime     @default(now())
+  products  Product[]
+
+  @@unique([storeId, slug])
+  @@unique([id, storeId]) // target of Product's (sellerId, storeId): a product's seller is in its store
+  @@index([storeId, type])
+}
+
 model Product {
-  id           String        @id @default(cuid())
+  id           String         @id @default(cuid())
   storeId      String
-  store        Store         @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  store        Store          @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  sellerId     String
+  seller       Seller         @relation(fields: [sellerId, storeId], references: [id, storeId], onDelete: Restrict)
+  line         ProductLine    @default(NEW)
+  condition    ItemCondition? // PRELOVED only; the database checks line = PRELOVED ⇔ condition set
   categoryId   String?
-  category     Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  category     Category?      @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   brandId      String?
-  brand        Brand?        @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  brand        Brand?         @relation(fields: [brandId], references: [id], onDelete: SetNull)
   collections  Collection[]
   slug         String
   title        Json // Localized
   description  Json? // Localized
-  status       ProductStatus @default(DRAFT)
+  status       ProductStatus  @default(DRAFT)
   images       String[]
   // Credit per photo, in the order of images: [{ author, authorUrl, photoUrl, source }] (Unsplash requires it);
   // null for the store's own photos.
@@ -163,27 +232,33 @@ model Product {
   // Translations of option values; variants store the German value.
   // e.g. { "color": { "Schwarz": { "fr": "Noir", "it": "Nero", "en": "Black" } } }
   optionValues Json?
-  isNew        Boolean       @default(false) // "New" badge on the product card
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  isNew        Boolean        @default(false) // "New" badge on the product card
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   variants ProductVariant[]
 
   @@unique([storeId, slug])
   @@index([storeId, status, createdAt])
+  @@index([storeId, line, status, createdAt])
+  @@index([storeId, sellerId])
+  @@index([categoryId])
   @@index([brandId])
 }
 
 model ProductVariant {
-  id             String   @id @default(cuid())
-  productId      String
-  product        Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  sku            String
-  price          Int // Rappen, VAT-inclusive
-  compareAtPrice Int?
-  options        Json // e.g. { "size": "M", "color": "Black" }
-  position       Int      @default(0)
-  createdAt      DateTime @default(now())
+  id                  String              @id @default(cuid())
+  productId           String
+  product             Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  sku                 String
+  price               Int // Rappen, VAT-inclusive
+  compareAtPrice      Int?
+  // Set exactly when compareAtPrice is (database check); since when the former price applies (PBV, optional).
+  compareAtPriceType  CompareAtPriceType?
+  compareAtPriceSince DateTime?
+  options             Json // e.g. { "size": "M", "color": "Black" }
+  position            Int                 @default(0)
+  createdAt           DateTime            @default(now())
 
   inventory  InventoryLevel[]
   orderItems OrderItem[]

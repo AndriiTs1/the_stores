@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import { syncDemoCatalog } from "./demo-catalog";
 import { demoProductImages } from "./demo-photos";
 import { DEMO_SLUG, demoStoreTexts } from "./demo-store";
 import { seedRefusal } from "./seed-guard";
@@ -79,7 +80,6 @@ type SeedProduct = {
   title: L;
   description: L;
   price: number;
-  compareAt?: number;
   colors: string[];
   sizes: keyof typeof SIZES;
   soldOut?: boolean;
@@ -121,7 +121,6 @@ const products: SeedProduct[] = [
       "Light hooded windbreaker that packs small.",
     ),
     price: 12990,
-    compareAt: 14990,
     colors: ["Grün"],
     sizes: "adult",
   },
@@ -171,7 +170,6 @@ const products: SeedProduct[] = [
       "Warm hooded sweatshirt with a kangaroo pocket.",
     ),
     price: 8990,
-    compareAt: 10990,
     colors: ["Grau", "Schwarz"],
     sizes: "adult",
   },
@@ -372,6 +370,7 @@ async function main() {
       ...demoStoreTexts,
       contactEmail: "shop@example.ch",
       locations: { create: [{ name: "Lager Lugano", type: "WAREHOUSE" }] },
+      sellers: { create: [{ slug: "house", name: demoStoreTexts.name, type: "HOUSE", status: "ACTIVE" }] },
       categories: { create: categories.map((c, i) => ({ slug: c.slug, name: c.name, position: i })) },
       brands: { create: brands.map((b, i) => ({ ...b, position: i })) },
       collections: {
@@ -385,7 +384,7 @@ async function main() {
         })),
       },
     },
-    include: { locations: true, categories: true, brands: true, collections: true },
+    include: { locations: true, categories: true, brands: true, collections: true, sellers: true },
   });
 
   const warehouse = store.locations[0];
@@ -398,7 +397,7 @@ async function main() {
       sizeList.map((size, si) => ({
         sku: [p.slug, color, size].filter(Boolean).join("-").toUpperCase(),
         price: p.price,
-        compareAtPrice: p.compareAt ?? null,
+        // Former prices (and their kind) are set by syncDemoCatalog below.
         options: size ? { size, color } : { color },
         position: ci * 10 + si,
         inventory: {
@@ -410,6 +409,7 @@ async function main() {
     await db.product.create({
       data: {
         storeId: store.id,
+        sellerId: store.sellers[0].id, // the store itself (HOUSE)
         categoryId: store.categories.find((c) => c.slug === p.category)?.id,
         brandId: store.brands.find((b) => b.slug === p.brand)?.id,
         collections: {
@@ -429,7 +429,9 @@ async function main() {
     });
   }
 
-  console.log(`Seeded store "${store.name}" with ${products.length} products.`);
+  // Lines, former prices, the private seller and her second-hand items (shared with db:update-demo).
+  const synced = await syncDemoCatalog(db, store.id, store.name);
+  console.log(`Seeded store "${store.name}" with ${products.length + synced.preloved} products.`);
 }
 
 main()

@@ -6,10 +6,10 @@ import { fontVariables } from "../../../fonts";
 import { AccountContent } from "@/components/account-content";
 import { MAIN_ID } from "@/components/account-panel";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
-import { CategoryPills } from "@/components/category-pills";
 import { FocusOnNavigate } from "@/components/focus-on-navigate";
 import { HeaderHeight } from "@/components/header-height";
 import { HomeLink } from "@/components/home-link";
+import { LineSwitcher } from "@/components/line-switcher";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
 import { SearchForm } from "@/components/search-form";
@@ -18,7 +18,7 @@ import { StableText } from "@/components/stable-text";
 import { StoreNav, type NavItem } from "@/components/store-nav";
 import { WishlistHeaderLink, WishlistProvider } from "@/components/wishlist";
 import { getCartCount } from "@/lib/cart";
-import { hasSale } from "@/lib/catalog";
+import { storeLines } from "@/lib/store-lines";
 import { db } from "@/lib/db";
 import { dictVariants, getDict, tr, trVariants } from "@/lib/i18n";
 import { STORE_PAGES } from "@/lib/store-pages";
@@ -47,11 +47,12 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
-  const [count, collections, sale] = await Promise.all([
+  const [count, collections, lines] = await Promise.all([
     getCartCount(store.id),
     db.collection.findMany({ where: { storeId: store.id, inNav: true }, orderBy: { position: "asc" } }),
-    hasSale(store.id),
+    storeLines(store.id),
   ]);
+  const lineLabels = { OUTLET: d.lineOutlet, NEW: d.lineNew, PRELOVED: d.lineSecondStory };
   const announcement = tr(store.announcement, locale);
   const announcementHref = storeHref(store.announcementHref, base, locale);
   // Labels keep the width of their longest translation: switching the language moves nothing in the header.
@@ -59,14 +60,6 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
     href: `${base}/${locale}/collections/${c.slug}`,
     label: <StableText text={tr(c.name, locale)} variants={trVariants(c.name, store.locales)} />,
   }));
-  // Sale last, red, only while something is reduced. The same list makes the phone's category pills.
-  if (sale) {
-    nav.push({
-      href: `${base}/${locale}/sale`,
-      label: <StableText text={d.sale} variants={dictVariants("sale", store.locales)} />,
-      accent: true,
-    });
-  }
 
   return (
     <html
@@ -101,6 +94,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                     the name (the focus ring hugs it); the cart is pushed right by its group's ml-auto. */}
                 <HomeLink
                   href={`${base}/${locale}`}
+                  translate="no"
                   className="min-w-0 break-words rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg lg:text-xl"
                 >
                   {store.name}
@@ -146,15 +140,14 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               </div>
             </header>
             <HeaderHeight />
-            <CategoryPills
-              // As wide as the label in this language (no StableText): a scrolling row, nothing beside it moves.
-              pills={[
-                ...collections.map((c) => ({ href: `${base}/${locale}/collections/${c.slug}`, label: tr(c.name, locale) })),
-                ...(sale ? [{ href: `${base}/${locale}/sale`, label: d.sale, sale: true }] : []),
-              ]}
-              home={`${base}/${locale}`}
-              label={d.shopCategories}
-            />
+            {/* Outlet · Neu · Second Story: under the search on phones, under the header above the title from md. */}
+            <Suspense>
+              <LineSwitcher
+                tabs={lines.map((id) => ({ id, label: lineLabels[id] }))}
+                home={`${base}/${locale}`}
+                label={d.lines}
+              />
+            </Suspense>
 
             {/* tabIndex -1: after leaving the account panel by a link, focus starts here on the new page. */}
             {/* Bottom padding = the gap between home page sections (32px phones, 48px from md); the footer adds none. */}

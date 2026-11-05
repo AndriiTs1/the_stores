@@ -21,22 +21,17 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
   };
 }
 
-/** ?category=<slug> narrows the collection to one category ("Herren · T-Shirts", from the categories screen). */
+/** ?category=<slug> (from the categories screen) is the listing's category filter, shown as a pill. */
 export default async function CollectionPage({ params, searchParams }: PageProps<"/s/[site]/[locale]/collections/[slug]">) {
   const { site, locale: rawLocale, slug } = await params;
   const query = await searchParams;
-  const categorySlug = query.category;
   const { store, locale, item } = await load(site, rawLocale, slug);
   const base = await getBase();
-  const category =
-    typeof categorySlug === "string"
-      ? await db.category.findUnique({ where: { storeId_slug: { storeId: store.id, slug: categorySlug } } })
-      : null;
   return (
     <Listing
-      title={category ? `${tr(item.name, locale)} · ${tr(category.name, locale)}` : tr(item.name, locale)}
-      where={{ collections: { some: { id: item.id } }, ...(category && { categoryId: category.id }) }}
-      path={`${base}/${locale}/collections/${slug}${category ? `?category=${category.slug}` : ""}`}
+      title={tr(item.name, locale)}
+      where={{ collections: { some: { id: item.id } } }}
+      path={`${base}/${locale}/collections/${slug}`}
       query={query}
       storeId={store.id}
       locale={locale}

@@ -1,5 +1,7 @@
 import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { getProductCards, itemLimit, moreHref, searchProductIds, searchQuery } from "@/lib/catalog";
+import { parseLine, resolveLine, withLine } from "@/lib/lines";
+import { storeLines } from "@/lib/store-lines";
 import { getDict } from "@/lib/i18n";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 
@@ -14,7 +16,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
 
 export default async function SearchPage({ params, searchParams }: PageProps<"/s/[site]/[locale]/search">) {
   const { site, locale: rawLocale } = await params;
-  const { q: rawQ, n } = await searchParams;
+  const { q: rawQ, n, line: lineParam } = await searchParams;
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
@@ -25,9 +27,12 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/s
     return <h1 className="text-2xl font-black tracking-tight sm:text-3xl">{d.searchHint}</h1>;
   }
 
+  // Results from the part of the store shown (?line=, else the first with products).
+  const asked = parseLine(lineParam);
+  const line = resolveLine(asked, await storeLines(store.id));
   const ids = await searchProductIds(store.id, locale, q);
   const { cards, hasMore } = ids.length
-    ? await getProductCards(store.id, locale, { id: { in: ids } }, limit)
+    ? await getProductCards(store.id, locale, { id: { in: ids }, ...(line && { line }) }, limit)
     : { cards: [], hasMore: false };
 
   return (
@@ -40,7 +45,7 @@ export default async function SearchPage({ params, searchParams }: PageProps<"/s
       ) : (
         <ProductGrid
           cards={cards}
-          moreHref={hasMore ? moreHref(`${base}/${locale}/search`, limit, { q }) : null}
+          moreHref={hasMore ? withLine(moreHref(`${base}/${locale}/search`, limit, { q }), asked) : null}
           base={base}
           locale={locale}
           currency={store.currency}

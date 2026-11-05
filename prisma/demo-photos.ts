@@ -216,6 +216,56 @@ export const demoPhotos: Record<string, DemoPhoto[]> = {
       photoUrl: "https://unsplash.com/photos/red-textile-in-close-up-photography-VWclpOWJp6c",
     },
   ],
+  "jeansjacke-anna": [
+    {
+      raw: "https://images.unsplash.com/photo-1543076447-215ad9ba6923?ixid=M3wxMTI0NTAzfDB8MXxzZWFyY2h8MXx8ZGVuaW0lMjBqYWNrZXQlMjBmbGF0JTIwbGF5fGVufDF8fHx8MTc5MzkxMjI5Mnww&ixlib=rb-4.1.0",
+      author: "kemal alkan",
+      authorUrl: "https://unsplash.com/@kemalalkan",
+      photoUrl: "https://unsplash.com/photos/blue-washed-jacket-hanging-on-white-door-_BDBEP0ePQc",
+    },
+    {
+      raw: "https://images.unsplash.com/photo-1700929979587-ac76c57c5ee1?ixid=M3wxMTI0NTAzfDB8MXxzZWFyY2h8MzB8fGRlbmltJTIwamFja2V0JTIwZmxhdCUyMGxheXxlbnwxfHx8fDE3OTM5MTIyOTJ8MA&ixlib=rb-4.1.0",
+      author: "Omar Roque",
+      authorUrl: "https://unsplash.com/@olroque",
+      photoUrl: "https://unsplash.com/photos/a-denim-jacket-with-a-fur-collar-hanging-on-a-wall-ahXm5bvYIuU",
+    },
+  ],
+  "hoodie-anna": [
+    {
+      raw: "https://images.unsplash.com/photo-1620799140188-3b2a02fd9a77?ixid=M3wxMTI0NTAzfDB8MXxzZWFyY2h8MXx8aG9vZGllJTIwZmxhdCUyMGxheXxlbnwxfHx8fDE3OTM5MTIyOTN8MA&ixlib=rb-4.1.0",
+      author: "Mediamodifier",
+      authorUrl: "https://unsplash.com/@mediamodifier",
+      photoUrl: "https://unsplash.com/photos/white-hoodie-and-distressed-jeans-kJXGTOY1wLQ",
+    },
+  ],
+  "jeans-anna": [
+    {
+      raw: "https://images.unsplash.com/photo-1714143136372-ddaf8b606da7?ixid=M3wxMTI0NTAzfDB8MXxzZWFyY2h8Mnx8amVhbnMlMjBmbGF0JTIwbGF5fGVufDF8fHx8MTc5MzkxMjI5NHww&ixlib=rb-4.1.0",
+      author: "TuanAnh Blue",
+      authorUrl: "https://unsplash.com/@blueeyeaa",
+      photoUrl: "https://unsplash.com/photos/a-pair-of-blue-jeans-on-a-white-background-9yoXrG6Er_g",
+    },
+    {
+      raw: "https://images.unsplash.com/photo-1714143136367-7bb68f3f0669?ixid=M3wxMTI0NTAzfDB8MXxzZWFyY2h8NXx8amVhbnMlMjBmbGF0JTIwbGF5fGVufDF8fHx8MTc5MzkxMjI5NHww&ixlib=rb-4.1.0",
+      author: "TuanAnh Blue",
+      authorUrl: "https://unsplash.com/@blueeyeaa",
+      photoUrl: "https://unsplash.com/photos/the-back-of-a-pair-of-blue-jeans-UinXCaBz44A",
+    },
+  ],
+  "ledertasche-anna": [
+    {
+      raw: "https://images.unsplash.com/photo-1691480150204-66dd1eb77391?ixid=M3wxMTI0NTAzfDB8MXxzZWFyY2h8MXx8bGVhdGhlciUyMGJhZyUyMHdoaXRlJTIwYmFja2dyb3VuZHxlbnwxfHx8fDE3OTM5MTIyOTV8MA&ixlib=rb-4.1.0",
+      author: "personalgraphic.com",
+      authorUrl: "https://unsplash.com/@personal_graphic",
+      photoUrl: "https://unsplash.com/photos/a-brown-leather-handbag-on-a-white-background-IFlg3kFbR0E",
+    },
+    {
+      raw: "https://images.unsplash.com/photo-1691480250099-a63081ecfcb8?ixid=M3wxMTI0NTAzfDB8MXxzZWFyY2h8Mnx8bGVhdGhlciUyMGJhZyUyMHdoaXRlJTIwYmFja2dyb3VuZHxlbnwxfHx8fDE3OTM5MTIyOTV8MA&ixlib=rb-4.1.0",
+      author: "personalgraphic.com",
+      authorUrl: "https://unsplash.com/@personal_graphic",
+      photoUrl: "https://unsplash.com/photos/a-brown-leather-handbag-on-a-white-background-zxPo13geJ5U",
+    },
+  ],
 };
 
 /** A demo product's images (3:4 URLs) and their credits, for the seed and db:update-demo. */

@@ -6,6 +6,13 @@ const nextConfig: NextConfig = {
   // `use cache` + cacheTag(`store:${id}`), invalidated from the admin actions.
   cacheComponents: false,
   devIndicators: false,
+  // Sale became the Outlet part: old links lead there for good (301), by path and on a store's own domain.
+  async redirects() {
+    return [
+      { source: "/s/:site/:locale/sale", destination: "/s/:site/:locale/products?line=outlet", statusCode: 301 },
+      { source: "/:locale(de|fr|it|en)/sale", destination: "/:locale/products?line=outlet", statusCode: 301 },
+    ];
+  },
   // Demo product photos come from Unsplash's image CDN (prisma/demo-photos.ts).
   images: {
     remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],

@@ -18,7 +18,8 @@ for (const width of [390, 1440]) {
       // The banner is switched off in the demo store's settings; the home page opens with the category tiles.
       await expect(page.getByRole("heading", { name: t.title })).toHaveCount(0);
       await expect(page.getByRole("heading", { name: t.section })).toBeVisible();
-      expect(await page.locator("body").innerText()).not.toMatch(NEW_WORDS);
+      // In the page content: «Neu» is now the name of a part of the store in the switcher above it.
+      expect(await page.locator("main").innerText()).not.toMatch(NEW_WORDS);
 
       // Windjacke Ridge: 149.90 → 129.90 = −13 %; a card without an old price has no label.
       const ridge = page.locator("main li").filter({ has: page.locator("a[href$='/p/windjacke-ridge']") });
