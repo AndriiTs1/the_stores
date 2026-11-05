@@ -32,12 +32,12 @@ export type ProductCardData = {
   soldOut: boolean;
 };
 
-const cardInclude = {
+export const cardInclude = {
   brand: { select: { name: true } },
   variants: { include: inventoryInclude, orderBy: { position: "asc" } },
 } satisfies Prisma.ProductInclude;
 
-type CardRow = Prisma.ProductGetPayload<{ include: typeof cardInclude }>;
+export type CardRow = Prisma.ProductGetPayload<{ include: typeof cardInclude }>;
 
 export function toProductCard(p: CardRow, locale: string): ProductCardData {
   const stock = p.variants.map((v) => ({ v, n: onlineStock(v.inventory) }));

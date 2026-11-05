@@ -24,7 +24,8 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
 /** ?category=<slug> narrows the collection to one category ("Herren · T-Shirts", from the categories screen). */
 export default async function CollectionPage({ params, searchParams }: PageProps<"/s/[site]/[locale]/collections/[slug]">) {
   const { site, locale: rawLocale, slug } = await params;
-  const { n, category: categorySlug } = await searchParams;
+  const query = await searchParams;
+  const categorySlug = query.category;
   const { store, locale, item } = await load(site, rawLocale, slug);
   const base = await getBase();
   const category =
@@ -35,14 +36,14 @@ export default async function CollectionPage({ params, searchParams }: PageProps
     <Listing
       title={category ? `${tr(item.name, locale)} · ${tr(category.name, locale)}` : tr(item.name, locale)}
       where={{ collections: { some: { id: item.id } }, ...(category && { categoryId: category.id }) }}
-      path={`${base}/${locale}/collections/${slug}`}
-      params={category ? { category: category.slug } : undefined}
-      n={n}
+      path={`${base}/${locale}/collections/${slug}${category ? `?category=${category.slug}` : ""}`}
+      query={query}
       storeId={store.id}
       locale={locale}
       base={base}
       currency={store.currency}
       d={getDict(locale)}
+      locales={store.locales}
     />
   );
 }

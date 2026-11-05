@@ -31,9 +31,8 @@ test.describe("phone 390×844", () => {
     }
   });
 
-  test("the current category is outlined, same size; pills keep their width in every language", async ({ page }) => {
+  test("the current category is outlined, same size; each pill as wide as its label in the language", async ({ page }) => {
     await page.goto(`${STORE}/de`, { waitUntil: "networkidle" });
-    const widthsDe = await pills(page).getByRole("link").evaluateAll((ls) => ls.map((l) => l.getBoundingClientRect().width));
     await pills(page).getByRole("link", { name: "Damen" }).click();
     await expect(page).toHaveURL(`${STORE}/de/collections/damen`);
     const current = pills(page).getByRole("link", { name: "Damen" });
@@ -41,11 +40,11 @@ test.describe("phone 390×844", () => {
     await expect(current).toHaveCSS("box-shadow", /1\.5px/);
     await expect(current).not.toHaveCSS("background-color", "rgb(17, 17, 17)");
 
-    for (const locale of ["fr", "it", "en"]) {
-      await page.goto(`${STORE}/${locale}`, { waitUntil: "networkidle" });
-      const widths = await pills(page).getByRole("link").evaluateAll((ls) => ls.map((l) => l.getBoundingClientRect().width));
-      expect(widths, locale).toEqual(widthsDe);
-    }
+    // No room kept for other languages: "Kinder" (de) and "Bambini" (it) differ in width.
+    const kinder = await pills(page).getByRole("link", { name: "Kinder" }).evaluate((l) => l.getBoundingClientRect().width);
+    await page.goto(`${STORE}/it`, { waitUntil: "networkidle" });
+    const bambini = await pills(page).getByRole("link", { name: "Bambini" }).evaluate((l) => l.getBoundingClientRect().width);
+    expect(bambini).toBeGreaterThan(kinder);
   });
 
   test("not on a product or the cart", async ({ page }) => {
@@ -73,6 +72,6 @@ test.describe("desktop 1440×900", () => {
     await expect(page.locator("#home-banner")).toHaveCount(0);
     await page.getByRole("link", { name: "Alle ansehen" }).click();
     await expect(page).toHaveURL(`${STORE}/de/products`);
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Alle Artikel");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/^Alle Artikel · \d+ Artikel$/);
   });
 });

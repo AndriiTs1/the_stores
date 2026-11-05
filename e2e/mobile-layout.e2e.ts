@@ -71,7 +71,7 @@ const sticksOut = (page: import("@playwright/test").Page) =>
 
 for (const locale of ["de", "fr", "it", "en"]) {
   test(`${locale}: no page is wider than the screen, with the account menu closed or open`, async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(300_000); // 32 page loads, each waiting for its product photos (24 per listing)
     // Something in the cart and on the wishlist, so those pages show content, not their empty state.
     await page.goto(`${STORE}/${locale}/p/windjacke-ridge`, { waitUntil: "networkidle" });
     await page.locator("main button[aria-pressed]").first().tap();

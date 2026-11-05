@@ -10,7 +10,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
 /** Every active product of the store ("View all" on the home page). */
 export default async function AllProductsPage({ params, searchParams }: PageProps<"/s/[site]/[locale]/products">) {
   const { site, locale: rawLocale } = await params;
-  const { n } = await searchParams;
+  const query = await searchParams;
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
@@ -19,12 +19,13 @@ export default async function AllProductsPage({ params, searchParams }: PageProp
       title={d.allProducts}
       where={{}}
       path={`${base}/${locale}/products`}
-      n={n}
+      query={query}
       storeId={store.id}
       locale={locale}
       base={base}
       currency={store.currency}
       d={d}
+      locales={store.locales}
     />
   );
 }

@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
 
 export default async function CategoryPage({ params, searchParams }: PageProps<"/s/[site]/[locale]/categories/[slug]">) {
   const { site, locale: rawLocale, slug } = await params;
-  const { n } = await searchParams;
+  const query = await searchParams;
   const { store, locale, item } = await load(site, rawLocale, slug);
   const base = await getBase();
   return (
@@ -31,12 +31,13 @@ export default async function CategoryPage({ params, searchParams }: PageProps<"
       title={tr(item.name, locale)}
       where={{ categoryId: item.id }}
       path={`${base}/${locale}/categories/${slug}`}
-      n={n}
+      query={query}
       storeId={store.id}
       locale={locale}
       base={base}
       currency={store.currency}
       d={getDict(locale)}
+      locales={store.locales}
     />
   );
 }

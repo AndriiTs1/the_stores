@@ -8,6 +8,7 @@ import { MAIN_ID } from "@/components/account-panel";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
 import { CategoryPills } from "@/components/category-pills";
 import { FocusOnNavigate } from "@/components/focus-on-navigate";
+import { HeaderHeight } from "@/components/header-height";
 import { HomeLink } from "@/components/home-link";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
@@ -144,8 +145,13 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                 </div>
               </div>
             </header>
+            <HeaderHeight />
             <CategoryPills
-              pills={nav.map((item) => ({ href: item.href, label: item.label, sale: item.accent }))}
+              // As wide as the label in this language (no StableText): a scrolling row, nothing beside it moves.
+              pills={[
+                ...collections.map((c) => ({ href: `${base}/${locale}/collections/${c.slug}`, label: tr(c.name, locale) })),
+                ...(sale ? [{ href: `${base}/${locale}/sale`, label: d.sale, sale: true }] : []),
+              ]}
               home={`${base}/${locale}`}
               label={d.shopCategories}
             />

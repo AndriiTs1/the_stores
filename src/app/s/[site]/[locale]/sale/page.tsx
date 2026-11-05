@@ -11,7 +11,7 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
 /** Every product with a reduced price. */
 export default async function SalePage({ params, searchParams }: PageProps<"/s/[site]/[locale]/sale">) {
   const { site, locale: rawLocale } = await params;
-  const { n } = await searchParams;
+  const query = await searchParams;
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
@@ -20,12 +20,13 @@ export default async function SalePage({ params, searchParams }: PageProps<"/s/[
       title={d.sale}
       where={ON_SALE}
       path={`${base}/${locale}/sale`}
-      n={n}
+      query={query}
       storeId={store.id}
       locale={locale}
       base={base}
       currency={store.currency}
       d={d}
+      locales={store.locales}
     />
   );
 }
