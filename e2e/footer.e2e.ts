@@ -30,7 +30,7 @@ test.describe("desktop", () => {
   test("header heart leads to the wishlist and counts saved items", async ({ page }) => {
     await page.goto("/s/demo/de");
     await page.evaluate(() => localStorage.removeItem("merkliste:demo"));
-    await page.reload();
+    await page.reload({ waitUntil: "networkidle" }); // click only once the page is hydrated
     const heart = page.locator("header").getByRole("link", { name: /^Merkliste/ });
     await expect(heart).toHaveAccessibleName("Merkliste");
     await page.getByRole("button", { name: "Auf die Merkliste" }).first().click();

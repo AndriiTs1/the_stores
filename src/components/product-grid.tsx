@@ -10,6 +10,7 @@ export type GridLabels = {
   /** The "sold out" badge, sized for its longest translation. */
   soldOutBadge: ReactNode;
   sizes: string;
+  onlyLeft: string;
   showMore: ReactNode;
   wishlistAdd: string;
   wishlistRemove: string;
@@ -20,6 +21,7 @@ export const gridLabels = (d: Dict, locales?: readonly string[]): GridLabels => 
   soldOut: d.soldOut,
   soldOutBadge: <StableText text={d.soldOut} variants={dictVariants("soldOut", locales)} />,
   sizes: d.sizes,
+  onlyLeft: d.onlyLeft,
   showMore: <StableText text={d.showMore} variants={dictVariants("showMore", locales)} />,
   wishlistAdd: d.wishlistAdd,
   wishlistRemove: d.wishlistRemove,

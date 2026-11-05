@@ -28,6 +28,8 @@ export function ProductCard({
     soldOut: string;
     soldOutBadge: ReactNode;
     sizes: string;
+    /** "Nur noch {size}". */
+    onlyLeft: string;
     wishlistAdd: string;
     wishlistRemove: string;
   };
@@ -71,18 +73,7 @@ export function ProductCard({
             variants={card.titleVariants}
             className="font-semibold [&>span]:line-clamp-2 [&>span]:hyphens-auto [&>span]:break-words"
           />
-          {card.sizes.length > 0 && (
-            // One line: sizes that don't fit are cut off rather than wrapped.
-            <p className="overflow-hidden whitespace-nowrap text-xs text-meta" aria-label={labels.sizes}>
-              {card.sizes.map((s, i) => (
-                <span key={s.label}>
-                  {i > 0 && <span aria-hidden> · </span>}
-                  <span className={s.soldOut ? "line-through" : ""}>{s.label}</span>
-                  {s.soldOut && <span className="sr-only"> ({labels.soldOut})</span>}
-                </span>
-              ))}
-            </p>
-          )}
+          <CardSizes sizes={card.sizes} soldOut={card.soldOut} labels={labels} />
           <p className="pt-0.5 tabular-nums">
             <span className={`font-semibold ${card.compareAt ? "text-accent" : ""}`}>
               {formatMoney(card.price, locale, currency)}
@@ -102,5 +93,32 @@ export function ProductCard({
         className="absolute right-0.5 top-0.5"
       />
     </div>
+  );
+}
+
+/**
+ * Sizes one can still buy, nothing struck through: "S · M · L"; the last one left: "Nur noch M"; none left: a grey
+ * "Ausverkauft". One line; sizes that don't fit are cut off rather than wrapped. Nothing for products without sizes.
+ */
+function CardSizes({
+  sizes,
+  soldOut,
+  labels,
+}: {
+  sizes: ProductCardData["sizes"];
+  soldOut: boolean;
+  labels: { sizes: string; soldOut: string; onlyLeft: string };
+}) {
+  const available = sizes.filter((s) => !s.soldOut).map((s) => s.label);
+  const className = "overflow-hidden whitespace-nowrap text-xs text-meta";
+  if (soldOut && (sizes.length > 0 || available.length === 0)) return <p className={className}>{labels.soldOut}</p>;
+  if (available.length === 0) return null;
+  if (available.length === 1 && sizes.length > 1) {
+    return <p className={className}>{labels.onlyLeft.replace("{size}", available[0])}</p>;
+  }
+  return (
+    <p className={className} aria-label={`${labels.sizes}: ${available.join(", ")}`}>
+      {available.join(" · ")}
+    </p>
   );
 }
