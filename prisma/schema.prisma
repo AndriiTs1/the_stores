@@ -135,10 +135,8 @@ model Collection {
   position Int       @default(0)
   inNav    Boolean   @default(false)
   featured Boolean   @default(false) // the banner on the store's home page
-  // Home page tile (collections in the menu): a picture (URL or path in /public), else the first product's
-  // illustration on the tile colour (#RRGGBB).
+  // Category picture (URL or path in /public), kept for later; not shown yet.
   tileImageUrl String?
-  tileColor    String?
   products Product[]
 
   @@unique([storeId, slug])
