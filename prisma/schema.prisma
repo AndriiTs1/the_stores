@@ -58,6 +58,9 @@ model Store {
   bannerEyebrow    Json? // home banner: small line above the title
   bannerTitle      Json? // banner title; no title → no banner
   bannerText       Json? // one line under the title
+  bannerEnabled    Boolean  @default(false) // the home banner is shown only when switched on
+  bannerImageUrl   String? // banner picture: an image URL or a path in /public
+  bannerHref       Json? // localized link of the banner button: a path after the locale or a full URL; none → the products
   // Square store icon (browser tab, phone home screen): an image URL or a path in /public. None → the store's
   // initials on the accent colour, generated.
   iconUrl          String?
@@ -132,6 +135,10 @@ model Collection {
   position Int       @default(0)
   inNav    Boolean   @default(false)
   featured Boolean   @default(false) // the banner on the store's home page
+  // Home page tile (collections in the menu): a picture (URL or path in /public), else the first product's
+  // illustration on the tile colour (#RRGGBB).
+  tileImageUrl String?
+  tileColor    String?
   products Product[]
 
   @@unique([storeId, slug])

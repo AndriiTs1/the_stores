@@ -13,12 +13,14 @@ import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-
 import { SearchForm } from "@/components/search-form";
 import { SellHeaderLink } from "@/components/sell-link";
 import { StableText } from "@/components/stable-text";
-import { StoreNav } from "@/components/store-nav";
+import { StoreNav, type NavItem } from "@/components/store-nav";
 import { WishlistHeaderLink, WishlistProvider } from "@/components/wishlist";
 import { getCartCount } from "@/lib/cart";
+import { hasSale } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { dictVariants, getDict, tr, trVariants } from "@/lib/i18n";
 import { STORE_PAGES } from "@/lib/store-pages";
+import { storeHref } from "@/lib/store-link";
 import { getBase, getStore, getStoreAndLocale, requestOrigin, storeOpenGraph } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[locale]">): Promise<Metadata> {
@@ -34,13 +36,6 @@ export async function generateMetadata({ params }: LayoutProps<"/s/[site]/[local
   };
 }
 
-/** A link from the store settings: a full URL as is, else a path after the locale ("/" = the catalogue). */
-function storeHref(href: string | null, base: string, locale: string): string | null {
-  if (!href) return null;
-  if (/^https?:\/\//.test(href)) return href;
-  return `${base}/${locale}${href === "/" ? "" : href}`;
-}
-
 // Content may extend under the iPhone home indicator; the bottom bar pads itself with safe-area-inset-bottom.
 export const viewport: Viewport = { viewportFit: "cover" };
 
@@ -50,17 +45,26 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
-  const [count, collections] = await Promise.all([
+  const [count, collections, sale] = await Promise.all([
     getCartCount(store.id),
     db.collection.findMany({ where: { storeId: store.id, inNav: true }, orderBy: { position: "asc" } }),
+    hasSale(store.id),
   ]);
   const announcement = tr(store.announcement, locale);
   const announcementHref = storeHref(store.announcementHref, base, locale);
   // Labels keep the width of their longest translation: switching the language moves nothing in the header.
-  const nav = collections.map((c) => ({
+  const nav: NavItem[] = collections.map((c) => ({
     href: `${base}/${locale}/collections/${c.slug}`,
     label: <StableText text={tr(c.name, locale)} variants={trVariants(c.name, store.locales)} />,
   }));
+  // Sale last, red, only while something is reduced.
+  if (sale) {
+    nav.push({
+      href: `${base}/${locale}/sale`,
+      label: <StableText text={d.sale} variants={dictVariants("sale", store.locales)} />,
+      accent: true,
+    });
+  }
 
   return (
     <html

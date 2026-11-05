@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 
+/** title: the banner's, which the demo store keeps in its settings but doesn't show. */
 const TEXTS = {
   de: { bar: "Kollektion Herbst / Winter 2026", title: "Die Kollektion", section: "Unsere Auswahl" },
   fr: { bar: "Collection automne / hiver 2026", title: "La collection", section: "Notre sélection" },
@@ -14,7 +15,8 @@ for (const width of [390, 1440]) {
     for (const [locale, t] of Object.entries(TEXTS)) {
       await page.goto(`/s/demo/${locale}`);
       await expect(page.getByRole("link", { name: t.bar })).toBeVisible();
-      await expect(page.getByRole("heading", { name: t.title })).toBeVisible();
+      // The banner is switched off in the demo store's settings; the home page opens with the category tiles.
+      await expect(page.getByRole("heading", { name: t.title })).toHaveCount(0);
       await expect(page.getByRole("heading", { name: t.section })).toBeVisible();
       expect(await page.locator("body").innerText()).not.toMatch(NEW_WORDS);
 
