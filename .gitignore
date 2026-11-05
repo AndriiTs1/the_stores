@@ -50,3 +50,6 @@ next-env.d.ts
 
 # Local audits (not published)
 /docs/audit-*.md
+
+# Playwright MCP screenshots and snapshots (local checks)
+/.playwright-mcp/
