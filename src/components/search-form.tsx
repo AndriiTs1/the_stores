@@ -37,7 +37,7 @@ function SearchFormView({ action, labels, className = "", query }: Props & { que
         placeholder={labels.placeholder}
         maxLength={100}
         enterKeyHint="search"
-        className="input pl-4 pr-11 [&::-webkit-search-cancel-button]:hidden"
+        className="input text-ellipsis pl-4 pr-11 [&::-webkit-search-cancel-button]:hidden"
       />
       <button
         type="submit"

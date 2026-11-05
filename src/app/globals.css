@@ -122,6 +122,16 @@ h2 {
   box-shadow: var(--field-focus);
   outline: none;
 }
+/*
+ * Phones: every field's text is at least 16px. iOS Safari zooms into a focused field with smaller text and leaves the
+ * page zoomed (it then pans sideways). Unlayered, so it wins over text-sm on the field; from md on, fields keep their size.
+ * Pinch zoom stays available: the viewport is not locked.
+ */
+@media (width < 48rem) {
+  :where(input:not([type="hidden"], [type="checkbox"], [type="radio"]), select, textarea) {
+    font-size: max(16px, 1rem);
+  }
+}
 /* One line in every language, so a long French label never changes the form height. */
 .label {
   @apply mb-1 block truncate text-[11px] font-medium uppercase tracking-wide text-muted;
