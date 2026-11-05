@@ -139,10 +139,11 @@ export function AccountPanel({
   if (!mounted) return null;
   return createPortal(
     // Closing: visibility switches after the slide-out, so a closed panel is truly hidden. Opening: at once,
-    // so focus can move into the panel right away.
+    // so focus can move into the panel right away. overflow-hidden: the closed panel waits off-screen to the right
+    // and must not stick out past the screen edge.
     <div
       inert={!open}
-      className={`fixed inset-0 z-50 md:hidden ${
+      className={`fixed inset-0 z-50 overflow-hidden md:hidden ${
         open
           ? "visible"
           : "pointer-events-none invisible transition-[visibility] duration-200 motion-reduce:transition-none"

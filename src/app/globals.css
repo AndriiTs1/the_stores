@@ -49,13 +49,18 @@
 /*
  * Appearing/disappearing scrollbar must not shift the page.
  * No tap highlight: iOS / Android draw a dark box around a tapped link; pressed states come from :active instead.
+ * overflow-x: clip, a safety net only: nothing may be wider than the screen (e2e/mobile-layout checks it), but if
+ * something is, the page must not pan sideways. clip, not hidden: hidden makes a scroll container and breaks the
+ * sticky header.
  */
 html {
   scrollbar-gutter: stable;
+  overflow-x: clip;
   -webkit-tap-highlight-color: transparent;
 }
 
 body {
+  overflow-x: clip;
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
@@ -121,6 +126,16 @@ h2 {
   border-color: var(--meta);
   box-shadow: var(--field-focus);
   outline: none;
+}
+/*
+ * Phones: every field's text is at least 16px. iOS Safari zooms into a focused field with smaller text and leaves the
+ * page zoomed (it then pans sideways). Unlayered, so it wins over text-sm on the field; from md on, fields keep their size.
+ * Pinch zoom stays available: the viewport is not locked.
+ */
+@media (width < 48rem) {
+  :where(input:not([type="hidden"], [type="checkbox"], [type="radio"]), select, textarea) {
+    font-size: max(16px, 1rem);
+  }
 }
 /* One line in every language, so a long French label never changes the form height. */
 .label {
