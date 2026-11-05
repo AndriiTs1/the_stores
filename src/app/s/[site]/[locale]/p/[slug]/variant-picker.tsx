@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { QuantityStepper } from "@/components/quantity-stepper";
+import { discountLabel } from "@/lib/money";
 import { errorText } from "@/lib/validation";
 import type { AddToCartState } from "../../actions";
 
@@ -10,6 +11,8 @@ export type PickerVariant = {
   options: Record<string, string>;
   price: string;
   compareAt: string | null;
+  /** Whole percent off compareAt; null: no label. */
+  discount: number | null;
   stock: number;
 };
 
@@ -85,10 +88,16 @@ export function VariantPicker({
   return (
     <form action={formAction} noValidate className="space-y-6">
       <div>
-        <p className="font-display text-2xl font-bold tabular-nums">
+        {/* Wraps as a whole: on a narrow screen the discount label moves under the prices without an indent. */}
+        <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1 font-display text-2xl font-bold tabular-nums">
           <span className={current?.compareAt ? "text-accent" : ""}>{current?.price}</span>
           {current?.compareAt && (
-            <span className="ml-3 text-base font-normal text-muted line-through">{current.compareAt}</span>
+            <span className="text-base font-normal text-muted line-through">{current.compareAt}</span>
+          )}
+          {current?.discount != null && (
+            <span className="self-center rounded bg-accent px-2 py-0.5 font-sans text-sm font-semibold text-accent-ink">
+              {discountLabel(current.discount)}
+            </span>
           )}
         </p>
       </div>

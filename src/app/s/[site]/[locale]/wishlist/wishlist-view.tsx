@@ -46,7 +46,7 @@ export function WishlistView({
       <div className="py-10 text-center">
         <p className="text-lg font-semibold">{labels.empty}</p>
         <p className="mx-auto mt-2 max-w-xs text-sm text-meta">{labels.emptyText}</p>
-        <Link href={`${base}/${locale}#new-arrivals`} className="btn btn-accent mt-6">
+        <Link href={`${base}/${locale}#selection`} className="btn btn-accent mt-6">
           {labels.browse}
         </Link>
       </div>

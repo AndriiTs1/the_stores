@@ -81,7 +81,7 @@ type SeedProduct = {
 
 const d = (de: string, fr: string, it: string, en: string): L => ({ de, fr, it, en });
 
-// Newest first: the first product here gets the latest createdAt ("Neuheiten" order).
+// Newest first: the first product here gets the latest createdAt (the home page order).
 const products: SeedProduct[] = [
   {
     slug: "t-shirt-classic",
@@ -379,14 +379,14 @@ async function main() {
       slug: "demo",
       name: "The stores",
       announcement: d(
-        "Neue Kollektion · Herbst / Winter 2026",
-        "Nouvelle collection · Automne / Hiver 2026",
-        "Nuova collezione · Autunno / Inverno 2026",
-        "New collection · Autumn / Winter 2026",
+        "Kollektion Herbst / Winter 2026",
+        "Collection automne / hiver 2026",
+        "Collezione autunno / inverno 2026",
+        "Autumn / Winter 2026 collection",
       ),
       announcementHref: "/", // the catalogue
       bannerEyebrow: d("Herbst / Winter 2026", "Automne / Hiver 2026", "Autunno / Inverno 2026", "Autumn / Winter 2026"),
-      bannerTitle: d("Neue Kollektion", "Nouvelle collection", "Nuova collezione", "New collection"),
+      bannerTitle: d("Die Kollektion", "La collection", "La collezione", "The collection"),
       bannerText: d(
         "Trainingskleidung für jeden Tag.",
         "Des vêtements de sport pour tous les jours.",

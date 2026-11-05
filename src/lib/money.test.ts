@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeCart, formatMoney } from "./money";
+import { computeCart, discountLabel, discountPercent, formatMoney } from "./money";
 
 const store = { shippingFlat: 900, freeShippingFrom: 10000, vatRateBp: 810 };
 
@@ -58,5 +58,22 @@ describe("formatMoney", () => {
       expect(formatMoney(108990, locale)).toBe("CHF\u00a01'089.90");
     }
     expect(formatMoney(2500, "fr")).toBe("CHF\u00a025.00");
+  });
+});
+
+describe("discountPercent", () => {
+  it("whole percent off, rounded down", () => {
+    expect(discountPercent(12990, 14990)).toBe(13); // 13.34 %
+    expect(discountLabel(13)).toBe("\u221213%");
+    expect(discountPercent(8000, 10000)).toBe(20);
+    expect(discountPercent(7999, 10000)).toBe(20); // 20.01 %
+    expect(discountPercent(8001, 10000)).toBe(19); // 19.99 %
+  });
+
+  it("no label without a higher compare-at price", () => {
+    expect(discountPercent(12990, null)).toBeNull();
+    expect(discountPercent(12990, 12990)).toBeNull();
+    expect(discountPercent(12990, 9990)).toBeNull();
+    expect(discountPercent(9950, 10000)).toBeNull(); // under 1 %
   });
 });

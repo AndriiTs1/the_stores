@@ -15,6 +15,19 @@ export function formatMoney(rappen: number, locale = "de", currency = "CHF") {
   }).format(rappen / 100);
 }
 
+/**
+ * Discount shown on a product: whole percent off the compare-at price, rounded down (149.90 → 129.90 is 13 %).
+ * null when there is no compare-at price, it is not above the price, or the saving is under 1 %.
+ */
+export function discountPercent(price: number, compareAt: number | null): number | null {
+  if (compareAt == null || compareAt <= price) return null;
+  const percent = Math.floor(((compareAt - price) * 100) / compareAt); // integers: exact unless it has a fraction
+  return percent >= 1 ? percent : null;
+}
+
+/** The red label: "−13%" (a real minus sign). */
+export const discountLabel = (percent: number) => `\u2212${percent}%`;
+
 /** VAT contained in a gross (VAT-inclusive) amount. Rate in basis points: 810 = 8.1 %. */
 export function vatFromGross(gross: number, rateBp: number) {
   return Math.round((gross * rateBp) / (10000 + rateBp));

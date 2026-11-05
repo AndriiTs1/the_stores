@@ -26,7 +26,7 @@ export default async function WishlistPage({ params }: PageProps<"/s/[site]/[loc
         locale={locale}
         base={base}
         currency={store.currency}
-        labels={{ ...gridLabels(d), empty: d.wishlistEmpty, emptyText: d.wishlistEmptyText, browse: d.newArrivals }}
+        labels={{ ...gridLabels(d), empty: d.wishlistEmpty, emptyText: d.wishlistEmptyText, browse: d.ourSelection }}
       />
     </>
   );

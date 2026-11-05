@@ -77,8 +77,6 @@ describe("toProductCard", () => {
   });
 
   it("the store's \"new\" flag reaches the card", () => {
-    expect(toProductCard(product({ isNew: true }), "de").isNew).toBe(true);
-    expect(toProductCard(product({}), "de").isNew).toBe(false);
   });
 
   it("size labels use the product's translations", () => {

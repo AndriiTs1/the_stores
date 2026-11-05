@@ -2,10 +2,11 @@ import Link from "next/link";
 import { ProductImage } from "@/components/product-image";
 import { WishlistButton } from "@/components/wishlist";
 import type { ProductCardData } from "@/lib/catalog";
-import { formatMoney } from "@/lib/money";
+import { discountLabel, discountPercent, formatMoney } from "@/lib/money";
 
 /**
- * Grid card: photo (second one on hover) with badges and the wishlist heart, name, sizes on one line, price in CHF.
+ * Grid card: photo (second one on hover) with badges (discount, sold out) and the wishlist heart, name, sizes on one
+ * line, price in CHF.
  * The heart is a sibling of the product link, not inside it (no button within a link).
  */
 export function ProductCard({
@@ -22,13 +23,13 @@ export function ProductCard({
   currency: string;
   labels: {
     soldOut: string;
-    newBadge: string;
     sizes: string;
     wishlistAdd: string;
     wishlistRemove: string;
   };
   preload?: boolean;
 }) {
+  const off = discountPercent(card.price, card.compareAt);
   return (
     <div className="relative">
       <Link href={href} className="group block rounded-lg">
@@ -40,11 +41,11 @@ export function ProductCard({
             sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
             preload={preload}
           />
-          {(card.isNew || card.soldOut) && (
+          {(off != null || card.soldOut) && (
             <div className="absolute left-2 top-2 flex flex-col items-start gap-1">
-              {card.isNew && (
-                <span className="rounded bg-accent px-2 py-0.5 text-xs font-semibold text-accent-ink">
-                  {labels.newBadge}
+              {off != null && (
+                <span className="rounded bg-accent px-2 py-0.5 text-xs font-semibold tabular-nums text-accent-ink">
+                  {discountLabel(off)}
                 </span>
               )}
               {card.soldOut && (

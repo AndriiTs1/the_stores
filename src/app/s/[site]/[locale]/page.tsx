@@ -37,14 +37,14 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
           title={bannerTitle}
           text={tr(store.bannerText, locale)}
           // The catalogue is this page: the button jumps to the product grid below.
-          href="#new-arrivals"
+          href="#selection"
           cta={d.discover}
         />
       )}
       {/* scroll-mt: the sticky header (two rows on phones) must not cover the heading after the jump. */}
-      <section id="new-arrivals" aria-labelledby="new-arrivals-title" className="scroll-mt-32 md:scroll-mt-24">
-        <h2 id="new-arrivals-title" className="mb-4 text-xl font-bold sm:text-2xl">
-          {d.newArrivals}
+      <section id="selection" aria-labelledby="selection-title" className="scroll-mt-32 md:scroll-mt-24">
+        <h2 id="selection-title" className="mb-4 text-xl font-bold sm:text-2xl">
+          {d.ourSelection}
         </h2>
         {cards.length === 0 ? (
           <p className="text-muted">{d.noProducts}</p>

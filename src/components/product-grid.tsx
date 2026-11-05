@@ -5,7 +5,6 @@ import type { Dict } from "@/lib/i18n";
 
 export type GridLabels = {
   soldOut: string;
-  newBadge: string;
   sizes: string;
   showMore: string;
   wishlistAdd: string;
@@ -15,7 +14,6 @@ export type GridLabels = {
 /** The grid's texts from the page dictionary. */
 export const gridLabels = (d: Dict): GridLabels => ({
   soldOut: d.soldOut,
-  newBadge: d.newBadge,
   sizes: d.sizes,
   showMore: d.showMore,
   wishlistAdd: d.wishlistAdd,

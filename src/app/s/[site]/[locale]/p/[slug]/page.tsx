@@ -4,7 +4,7 @@ import { WishlistButton } from "@/components/wishlist";
 import { db } from "@/lib/db";
 import { getDict, optionLabel, optionValueLabel, tr } from "@/lib/i18n";
 import { inventoryInclude, onlineStock } from "@/lib/inventory";
-import { formatMoney } from "@/lib/money";
+import { discountPercent, formatMoney } from "@/lib/money";
 import { getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 import { addToCart } from "../../actions";
 import { VariantPicker } from "./variant-picker";
@@ -41,6 +41,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
     options: v.options as Record<string, string>,
     price: formatMoney(v.price, locale, store.currency),
     compareAt: v.compareAtPrice ? formatMoney(v.compareAtPrice, locale, store.currency) : null,
+    discount: discountPercent(v.price, v.compareAtPrice),
     stock: onlineStock(v.inventory),
   }));
   // Variants keep the German value; the picker shows it in the page language.
