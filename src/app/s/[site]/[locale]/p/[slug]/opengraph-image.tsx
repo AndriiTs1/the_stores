@@ -3,12 +3,14 @@ import { ImageResponse } from "next/og";
 import { db } from "@/lib/db";
 import { tr } from "@/lib/i18n";
 import { discountLabel, discountPercent, formatMoney } from "@/lib/money";
-import { ARCHIVO, ARCHIVO_EXPANDED, imageSrc, OG, ogFonts } from "@/lib/og";
+import { ARCHIVO_EXPANDED, imageSrc, OG, ogFonts } from "@/lib/og";
+import { OutlineBackdrop, Ribbon } from "@/lib/og-backdrop";
 import { getStoreAndLocale } from "@/lib/tenant";
 
 /**
- * Link preview of a product: its photo on the left; the store name, product name and price on the right.
- * The price is the cheapest variant's, as on the product card, with the former price and −X% when it is reduced.
+ * Link preview of a product, in the store image's style: on black with the outlined store name behind, the photo on
+ * a tilted white card at the left, name and price at the right, the store name small at the bottom. The price is the
+ * cheapest variant's, as on the product card; reduced: red, the former price struck through, a red ribbon with −X%.
  */
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
@@ -18,7 +20,7 @@ export default async function Image({ params }: { params: Promise<{ site: string
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const product = await db.product.findUnique({
     where: { storeId_slug: { storeId: store.id, slug } },
-    include: { variants: { select: { price: true, compareAtPrice: true } }, brand: { select: { name: true } } },
+    include: { variants: { select: { price: true, compareAtPrice: true } } },
   });
   if (!product || product.status !== "ACTIVE") notFound();
 
@@ -28,8 +30,9 @@ export default async function Image({ params }: { params: Promise<{ site: string
   );
   const discount = cheapest ? discountPercent(cheapest.price, cheapest.compareAtPrice) : null;
   const money = (rappen: number) => formatMoney(rappen, locale, store.currency);
-  const picture = await imageSrc(product.images[0]);
-  const title = tr(product.title, locale);
+  const picture = await imageSrc(product.images[0], {});
+  const title = tr(product.title, locale).toUpperCase();
+  const name = store.name.toUpperCase();
 
   return new ImageResponse(
     (
@@ -38,65 +41,92 @@ export default async function Image({ params }: { params: Promise<{ site: string
           width: "100%",
           height: "100%",
           display: "flex",
-          alignItems: "center",
-          background: OG.banner,
-          padding: 56,
-          fontFamily: ARCHIVO,
-          color: OG.foreground,
+          position: "relative",
+          overflow: "hidden",
+          background: OG.black,
+          fontFamily: ARCHIVO_EXPANDED,
+          color: OG.white,
         }}
       >
-        {picture ? (
-          <img src={picture} alt="" width={389} height={518} style={{ borderRadius: 16, objectFit: "cover" }} />
-        ) : (
-          <div style={{ width: 389, height: 518, borderRadius: 16, background: OG.white }} />
+        <OutlineBackdrop name={name} />
+
+        <div
+          style={{
+            position: "absolute",
+            top: 64,
+            left: 72,
+            width: 375,
+            height: 500,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: 18,
+            background: OG.white,
+            transform: "rotate(-4deg)",
+          }}
+        >
+          {picture && <img src={picture} alt="" width={330} height={440} style={{ objectFit: "contain" }} />}
+        </div>
+        {discount && (
+          <Ribbon
+            phrases={[discountLabel(discount)]}
+            top={452}
+            left={290}
+            width={260}
+            angle={-8}
+            fontSize={40}
+            height={84}
+            once
+          />
         )}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", paddingLeft: 64 }}>
-          <div style={{ fontFamily: ARCHIVO_EXPANDED, fontWeight: 700, fontSize: 28, letterSpacing: 0 }}>
-            {store.name.toUpperCase()}
-          </div>
-          {product.brand && (
-            <div style={{ marginTop: 40, fontSize: 26, fontWeight: 600, color: OG.meta }}>{product.brand.name}</div>
-          )}
-          <div
-            style={{
-              marginTop: product.brand ? 8 : 40,
-              fontSize: title.length > 28 ? 52 : 64,
-              fontWeight: 600,
-              lineHeight: 1.1,
-              letterSpacing: -1,
-            }}
-          >
-            {title}
-          </div>
+
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            bottom: 0,
+            left: 540,
+            right: 64,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+          }}
+        >
+          <div style={{ fontWeight: 900, fontSize: title.length > 16 ? 56 : 72, lineHeight: 0.95 }}>{title}</div>
           {cheapest && (
-            <div style={{ marginTop: 36, display: "flex", alignItems: "center", flexWrap: "wrap" }}>
-              <div style={{ fontSize: 48, fontWeight: 600, color: discount ? OG.accent : OG.foreground }}>
+            <div style={{ marginTop: 40, display: "flex", alignItems: "baseline", flexWrap: "wrap" }}>
+              <div style={{ fontWeight: 900, fontSize: 64, color: discount ? OG.accent : OG.white }}>
                 {money(cheapest.price)}
               </div>
               {discount && cheapest.compareAtPrice && (
                 <div
-                  style={{ marginLeft: 20, fontSize: 32, color: OG.meta, textDecoration: "line-through" }}
+                  style={{
+                    marginLeft: 24,
+                    fontWeight: 800,
+                    fontSize: 32,
+                    color: OG.struck,
+                    textDecoration: "line-through",
+                  }}
                 >
                   {money(cheapest.compareAtPrice)}
                 </div>
               )}
-              {discount && (
-                <div
-                  style={{
-                    marginLeft: 20,
-                    padding: "6px 14px",
-                    borderRadius: 8,
-                    background: OG.accent,
-                    color: OG.white,
-                    fontSize: 30,
-                    fontWeight: 600,
-                  }}
-                >
-                  {discountLabel(discount)}
-                </div>
-              )}
             </div>
           )}
+        </div>
+
+        <div
+          style={{
+            position: "absolute",
+            right: 64,
+            bottom: 48,
+            fontWeight: 800,
+            fontSize: 20,
+            letterSpacing: 2,
+            color: OG.line,
+          }}
+        >
+          {name}
         </div>
       </div>
     ),
