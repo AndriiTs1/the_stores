@@ -1,4 +1,4 @@
-import { Archivo, Manrope, Unbounded } from "next/font/google";
+import { Manrope, Unbounded } from "next/font/google";
 
 /**
  * Font pair as CSS variables (--font-display, --font-sans), applied on <html> in every root layout.
@@ -23,16 +23,4 @@ const sans = Manrope({
   variable: "--font-sans",
 });
 
-/**
- * Archivo with its width axis, for the home page category tiles: Black at font-stretch 125% (Archivo Expanded),
- * the face of the link previews. Not preloaded: only the desktop tiles use it, and they show text at once (swap).
- */
-const tile = Archivo({
-  subsets: ["latin", "latin-ext"],
-  axes: ["wdth"],
-  display: "swap",
-  preload: false,
-  variable: "--font-tile",
-});
-
-export const fontVariables = `${display.variable} ${sans.variable} ${tile.variable}`;
+export const fontVariables = `${display.variable} ${sans.variable}`;

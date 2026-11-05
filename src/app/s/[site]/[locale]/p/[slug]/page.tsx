@@ -74,7 +74,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
         {product.images.length > 1 && (
           <div className="grid grid-cols-4 gap-3">
             {product.images.slice(1).map((src) => (
-              <ProductImage key={src} src={src} title={title} sizes="(min-width: 768px) 12vw, 25vw" />
+              <ProductImage key={src} src={src} title={title} sizes="(min-width: 768px) 12vw, 25vw" eager />
             ))}
           </div>
         )}

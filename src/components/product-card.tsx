@@ -18,6 +18,7 @@ export function ProductCard({
   currency,
   labels,
   preload = false,
+  eager = false,
 }: {
   card: ProductCardData;
   href: string;
@@ -31,6 +32,7 @@ export function ProductCard({
     wishlistRemove: string;
   };
   preload?: boolean;
+  eager?: boolean;
 }) {
   const off = discountPercent(card.price, card.compareAt);
   return (
@@ -43,6 +45,7 @@ export function ProductCard({
             title={card.brand ? `${card.brand} ${card.title}` : card.title}
             sizes="(min-width: 1024px) 25vw, (min-width: 768px) 33vw, 50vw"
             preload={preload}
+            eager={eager}
           />
           {(off != null || card.soldOut) && (
             <div className="absolute left-2 top-2 flex flex-col items-start gap-1">

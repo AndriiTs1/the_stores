@@ -10,6 +10,7 @@ for (const locale of ["de", "fr", "it", "en"]) {
   test(`${locale}: search field text is 16px, focus changes neither the field nor the page width`, async ({ page }) => {
     await page.goto(`${STORE}/${locale}`, { waitUntil: "networkidle" });
     const search = page.getByRole("searchbox");
+    await expect(search).toBeVisible(); // measured only once it is laid out (a cold dev server renders late)
     const before = { box: await search.boundingBox(), doc: await docWidth(page) };
     await search.tap();
     await expect(search).toBeFocused();

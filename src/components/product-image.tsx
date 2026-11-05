@@ -10,6 +10,7 @@ export function ProductImage({
   title,
   sizes,
   preload = false,
+  eager = false,
   className = "",
 }: {
   src?: string;
@@ -19,12 +20,22 @@ export function ProductImage({
   sizes: string;
   /** Only for the largest image above the fold (LCP). */
   preload?: boolean;
+  /** Above the fold on some screen (the first product row, the product thumbnails): load at once, not lazily. */
+  eager?: boolean;
   className?: string;
 }) {
   return (
     <div className={`relative aspect-[3/4] w-full overflow-hidden rounded-lg bg-surface ${className}`}>
       {src ? (
-        <Image src={src} alt={title} fill sizes={sizes} preload={preload} className="object-cover" />
+        <Image
+          src={src}
+          alt={title}
+          fill
+          sizes={sizes}
+          preload={preload}
+          loading={preload || eager ? "eager" : undefined}
+          className="object-cover"
+        />
       ) : (
         <span
           aria-hidden

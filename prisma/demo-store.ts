@@ -15,7 +15,7 @@ export const demoStoreTexts = {
   announcementHref: "/", // the catalogue
   bannerEyebrow: d("Herbst / Winter 2026", "Automne / Hiver 2026", "Autunno / Inverno 2026", "Autumn / Winter 2026"),
   bannerTitle: d("Die Kollektion", "La collection", "La collezione", "The collection"),
-  bannerEnabled: false, // the home page opens with the category tiles; the banner texts stay for link previews
+  bannerEnabled: false, // no banner on the home page; its texts stay for the link previews
   bannerText: d(
     "Sportbekleidung für jeden Tag.",
     "Des vêtements de sport pour tous les jours.",
@@ -24,10 +24,3 @@ export const demoStoreTexts = {
   ),
 };
 
-/** Home page tile colours of the demo collections (by slug). */
-export const demoCollectionTiles: Record<string, { tileColor: string }> = {
-  herren: { tileColor: "#E7E4DE" },
-  damen: { tileColor: "#EEE4E1" },
-  kinder: { tileColor: "#E2E8E3" },
-  sport: { tileColor: "#E2E5EA" },
-};

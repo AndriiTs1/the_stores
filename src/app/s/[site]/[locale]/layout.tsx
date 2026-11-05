@@ -6,6 +6,7 @@ import { fontVariables } from "../../../fonts";
 import { AccountContent } from "@/components/account-content";
 import { MAIN_ID } from "@/components/account-panel";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
+import { CategoryPills } from "@/components/category-pills";
 import { FocusOnNavigate } from "@/components/focus-on-navigate";
 import { HomeLink } from "@/components/home-link";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
@@ -57,7 +58,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
     href: `${base}/${locale}/collections/${c.slug}`,
     label: <StableText text={tr(c.name, locale)} variants={trVariants(c.name, store.locales)} />,
   }));
-  // Sale last, red, only while something is reduced.
+  // Sale last, red, only while something is reduced. The same list makes the phone's category pills.
   if (sale) {
     nav.push({
       href: `${base}/${locale}/sale`,
@@ -139,6 +140,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                 </div>
               </div>
             </header>
+            <CategoryPills
+              pills={nav.map((item) => ({ href: item.href, label: item.label, sale: item.accent }))}
+              home={`${base}/${locale}`}
+              label={d.shopCategories}
+            />
 
             {/* tabIndex -1: after leaving the account panel by a link, focus starts here on the new page. */}
             <main id={MAIN_ID} tabIndex={-1} className="container-page flex-1 py-6 sm:py-8">

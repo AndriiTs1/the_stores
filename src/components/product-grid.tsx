@@ -61,6 +61,9 @@ export function ProductGrid({
               currency={currency}
               labels={labels}
               preload={preloadFirst && i < 2}
+              // The first two rows (4 cards each on desktop) show on the first screen: Next warns when an LCP image
+              // loads lazily.
+              eager={preloadFirst && i < 8}
             />
           </li>
         ))}

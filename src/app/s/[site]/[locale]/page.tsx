@@ -1,13 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { CategoryTiles, type Tile } from "@/components/category-tiles";
 import { HomeBanner } from "@/components/home-banner";
 import { StableText } from "@/components/stable-text";
 import { gridLabels, ProductGrid } from "@/components/product-grid";
-import { getProductCards, hasSale, itemLimit, moreHref } from "@/lib/catalog";
+import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { dictVariants, getDict, tr, trVariants } from "@/lib/i18n";
-import { imageSrc } from "@/lib/og";
 import { storeHref } from "@/lib/store-link";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 
@@ -26,50 +24,15 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
   // Categories and brands are listed only when they have something to show.
   const withProducts = { products: { some: { status: "ACTIVE" as const } } };
   const bannerTitle = store.bannerEnabled ? tr(store.bannerTitle, locale) : "";
-  const [{ cards, hasMore }, categories, brands, collections, sale] = await Promise.all([
+  const [{ cards, hasMore }, categories, brands] = await Promise.all([
     getProductCards(store.id, locale, {}, limit),
     db.category.findMany({ where: { storeId: store.id, ...withProducts }, orderBy: { position: "asc" } }),
     db.brand.findMany({ where: { storeId: store.id, ...withProducts }, orderBy: { position: "asc" } }),
-    // The tiles: the store's menu categories, in their order, each with a picture of one of its newest products.
-    db.collection.findMany({
-      where: { storeId: store.id, inNav: true },
-      orderBy: { position: "asc" },
-      include: {
-        products: {
-          where: { status: "ACTIVE", images: { isEmpty: false } },
-          orderBy: [{ createdAt: "desc" }, { id: "desc" }],
-          select: { images: true },
-          take: 6,
-        },
-      },
-    }),
-    hasSale(store.id),
   ]);
-  // Each tile shows a product the tiles before it don't (a product is often in several categories).
-  const used = new Set<string>();
-  const pictures = collections.map((c) => {
-    const picture = c.products.map((p) => p.images[0]).find((src) => !used.has(src)) ?? c.products[0]?.images[0];
-    if (picture) used.add(picture);
-    return picture;
-  });
-  const tiles: Tile[] = await Promise.all(
-    collections.map(async (c, i) => ({
-      href: `${base}/${locale}/collections/${c.slug}`,
-      label: tr(c.name, locale),
-      color: c.tileColor,
-      image: c.tileImageUrl,
-      silhouette: c.tileImageUrl ? null : await imageSrc(pictures[i], {}),
-    })),
-  );
 
   return (
     <>
       <h1 className="sr-only">{store.name}</h1>
-      <CategoryTiles
-        tiles={tiles}
-        sale={sale ? { href: `${base}/${locale}/sale`, label: d.sale } : null}
-        label={d.shopCategories}
-      />
       {/* Off unless switched on in the store settings. */}
       {bannerTitle && (
         <HomeBanner

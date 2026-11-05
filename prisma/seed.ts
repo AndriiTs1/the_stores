@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
-import { DEMO_SLUG, demoCollectionTiles, demoStoreTexts } from "./demo-store";
+import { DEMO_SLUG, demoStoreTexts } from "./demo-store";
 import { seedRefusal } from "./seed-guard";
 
 // Before connecting: the seed wipes the demo store and must never touch the production database.
@@ -399,7 +399,6 @@ async function main() {
           position: i,
           inNav: true,
           featured: c.featured ?? false,
-          ...demoCollectionTiles[c.slug],
         })),
       },
     },
