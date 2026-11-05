@@ -23,6 +23,7 @@ export function CartView({
   currency,
   pricing,
   d,
+  closed,
   update,
   formAction,
 }: {
@@ -32,6 +33,8 @@ export function CartView({
   currency: string;
   pricing: { shippingFlat: number; freeShippingFrom: number | null; vatRateBp: number };
   d: Dict;
+  /** Orders are switched off (no payment set up on this deployment): no way to checkout. */
+  closed: boolean;
   update: (input: { variantId: string; quantity: number }) => Promise<CartState>;
   formAction: (formData: FormData) => Promise<void>;
 }) {
@@ -131,9 +134,9 @@ export function CartView({
 
       <aside className="h-fit rounded-lg bg-surface p-5 lg:sticky lg:top-24">
         <OrderSummary d={d} locale={locale} currency={currency} vatRateBp={pricing.vatRateBp} {...totals} />
-        {overStock ? (
+        {closed || overStock ? (
           <span aria-disabled className="btn mt-6 w-full opacity-40">
-            {d.checkout}
+            {closed ? d.ordersClosed : d.checkout}
           </span>
         ) : (
           <Link

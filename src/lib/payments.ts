@@ -3,7 +3,7 @@ import Stripe from "stripe";
 /**
  * Stripe Checkout. Payment methods (cards, TWINT, Apple Pay, Google Pay, PostFinance)
  * are switched on in the Stripe dashboard, not in code.
- * Without STRIPE_SECRET_KEY the shop runs in test mode and orders are marked paid instantly.
+ * Without STRIPE_SECRET_KEY the shop runs in test mode and orders are marked paid instantly — but only locally.
  */
 let stripe: Stripe | null = null;
 
@@ -11,6 +11,17 @@ export function getStripe(): Stripe | null {
   if (!process.env.STRIPE_SECRET_KEY) return null;
   stripe ??= new Stripe(process.env.STRIPE_SECRET_KEY);
   return stripe;
+}
+
+/**
+ * How orders are taken: "stripe" with a key; without one "test" (paid at once, no money) in local development,
+ * but "closed" on a Vercel preview or production deployment — a missing key must never mean free orders.
+ */
+export type CheckoutMode = "stripe" | "test" | "closed";
+
+export function checkoutMode(env: Record<string, string | undefined> = process.env): CheckoutMode {
+  if (env.STRIPE_SECRET_KEY) return "stripe";
+  return env.VERCEL_ENV === "preview" || env.VERCEL_ENV === "production" ? "closed" : "test";
 }
 
 const STRIPE_LOCALES = { de: "de", fr: "fr", it: "it", en: "en" } as const;

@@ -1,9 +1,10 @@
+import Image from "next/image";
 import Link from "next/link";
-import { ProductImage } from "@/components/product-image";
+import { HomeBanner } from "@/components/home-banner";
+import { gridLabels, ProductGrid } from "@/components/product-grid";
+import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
 import { db } from "@/lib/db";
 import { getDict, tr } from "@/lib/i18n";
-import { inventoryInclude, onlineStock } from "@/lib/inventory";
-import { formatMoney } from "@/lib/money";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]">) {
@@ -11,92 +12,101 @@ export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]
   return { alternates: await languageAlternates(site, "") };
 }
 
-export default async function Catalog({ params, searchParams }: PageProps<"/s/[site]/[locale]">) {
+export default async function StoreHome({ params, searchParams }: PageProps<"/s/[site]/[locale]">) {
   const { site, locale: rawLocale } = await params;
-  const { c } = await searchParams;
+  const { n } = await searchParams;
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
-  const activeCategory = typeof c === "string" ? c : undefined;
-
-  const [categories, products] = await Promise.all([
-    db.category.findMany({ where: { storeId: store.id }, orderBy: { position: "asc" } }),
-    db.product.findMany({
-      where: {
-        storeId: store.id,
-        status: "ACTIVE",
-        ...(activeCategory ? { category: { slug: activeCategory } } : {}),
-      },
-      include: { variants: { include: inventoryInclude } },
-      orderBy: { createdAt: "asc" },
-    }),
+  const limit = itemLimit(n);
+  // Categories and brands are listed only when they have something to show.
+  const withProducts = { products: { some: { status: "ACTIVE" as const } } };
+  const bannerTitle = tr(store.bannerTitle, locale);
+  const [{ cards, hasMore }, categories, brands] = await Promise.all([
+    getProductCards(store.id, locale, {}, limit),
+    db.category.findMany({ where: { storeId: store.id, ...withProducts }, orderBy: { position: "asc" } }),
+    db.brand.findMany({ where: { storeId: store.id, ...withProducts }, orderBy: { position: "asc" } }),
   ]);
 
   return (
     <>
-      {/* Phone: one scrollable row (no visible scrollbar); wider screens wrap. Row height never changes. */}
-      <div className="no-scrollbar -mx-4 mb-6 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:mb-8 sm:flex-wrap sm:overflow-visible sm:px-0">
-        <CategoryPill href={`${base}/${locale}`} active={!activeCategory} label={d.all} />
-        {categories.map((cat) => (
-          <CategoryPill
-            key={cat.id}
-            href={`${base}/${locale}?c=${cat.slug}`}
-            active={activeCategory === cat.slug}
-            label={tr(cat.name, locale)}
+      <h1 className="sr-only">{store.name}</h1>
+      {bannerTitle && (
+        <HomeBanner
+          eyebrow={tr(store.bannerEyebrow, locale)}
+          title={bannerTitle}
+          text={tr(store.bannerText, locale)}
+          // The catalogue is this page: the button jumps to the product grid below.
+          href="#selection"
+          cta={d.discover}
+        />
+      )}
+      {/* scroll-mt: the sticky header (two rows on phones) must not cover the heading after the jump. */}
+      <section id="selection" aria-labelledby="selection-title" className="scroll-mt-32 md:scroll-mt-24">
+        <h2 id="selection-title" className="mb-4 text-xl font-bold sm:text-2xl">
+          {d.ourSelection}
+        </h2>
+        {cards.length === 0 ? (
+          <p className="text-muted">{d.noProducts}</p>
+        ) : (
+          <ProductGrid
+            cards={cards}
+            moreHref={hasMore ? moreHref(`${base}/${locale}`, limit) : null}
+            base={base}
+            locale={locale}
+            currency={store.currency}
+            labels={gridLabels(d)}
+            preloadFirst
           />
-        ))}
-      </div>
+        )}
+      </section>
 
-      {products.length === 0 ? (
-        <p className="text-muted">{d.noProducts}</p>
-      ) : (
-        <ul className="grid grid-cols-2 gap-x-4 gap-y-8 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
-          {products.map((p) => {
-            const title = tr(p.title, locale);
-            const minPrice = Math.min(...p.variants.map((v) => v.price));
-            const compareAt = p.variants.find((v) => v.price === minPrice)?.compareAtPrice;
-            const soldOut = p.variants.every((v) => onlineStock(v.inventory) === 0);
-            return (
-              <li key={p.id}>
-                <Link href={`${base}/${locale}/p/${p.slug}`} className="group block">
-                  <div className="relative">
-                    <ProductImage src={p.images[0]} title={title} className="transition group-hover:opacity-90" />
-                    {soldOut && (
-                      <span className="absolute left-2 top-2 rounded bg-foreground px-2 py-0.5 text-xs font-semibold text-background">
-                        {d.soldOut}
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-3 line-clamp-2 min-h-10 text-sm font-semibold">{title}</p>
-                  <p className="mt-1 text-sm tabular-nums">
-                    <span className={compareAt ? "font-semibold text-accent" : ""}>
-                      {formatMoney(minPrice, locale, store.currency)}
-                    </span>
-                    {compareAt && (
-                      <span className="ml-2 text-muted line-through">
-                        {formatMoney(compareAt, locale, store.currency)}
-                      </span>
-                    )}
-                  </p>
+      {categories.length > 0 && (
+        <section aria-labelledby="categories" className="mt-14">
+          <h2 id="categories" className="mb-4 text-xl font-bold sm:text-2xl">
+            {d.categories}
+          </h2>
+          <ul className="flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <li key={c.id}>
+                <Link
+                  href={`${base}/${locale}/categories/${c.slug}`}
+                  className="inline-flex rounded-full px-4 py-2 text-sm font-medium ring-1 ring-inset ring-line hover:bg-surface"
+                >
+                  {tr(c.name, locale)}
                 </Link>
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {brands.length > 0 && (
+        <section aria-labelledby="brands" className="mt-14">
+          <h2 id="brands" className="mb-4 text-xl font-bold sm:text-2xl">
+            {d.brands}
+          </h2>
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            {brands.map((b) => (
+              <li key={b.id}>
+                {/* Logo when the store has one, else the name. */}
+                <Link
+                  href={`${base}/${locale}/brands/${b.slug}`}
+                  className="flex h-20 items-center justify-center rounded-lg bg-surface px-3 text-center font-display text-sm font-bold uppercase tracking-tight hover:ring-1 hover:ring-line"
+                >
+                  {b.logoUrl ? (
+                    <span className="relative h-10 w-full">
+                      <Image src={b.logoUrl} alt={b.name} fill sizes="160px" className="object-contain" />
+                    </span>
+                  ) : (
+                    b.name
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </>
-  );
-}
-
-function CategoryPill({ href, active, label }: { href: string; active: boolean; label: string }) {
-  return (
-    <Link
-      href={href}
-      className={`shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium ring-1 ring-inset ${
-        active ? "bg-foreground text-background ring-foreground" : "ring-line hover:bg-surface"
-      }`}
-    >
-      {label}
-    </Link>
   );
 }

@@ -6,7 +6,7 @@ import { clearCart, getCartLines, readCart, writeCart, type CartLine } from "@/l
 import { db } from "@/lib/db";
 import { inventoryInclude, onlineStock } from "@/lib/inventory";
 import { createPendingOrder, markOrderPaid, OutOfStockError } from "@/lib/orders";
-import { createCheckoutSession, getStripe } from "@/lib/payments";
+import { checkoutMode, createCheckoutSession } from "@/lib/payments";
 import { getBase, getStoreAndLocale } from "@/lib/tenant";
 import { addToCartSchema, cartLineSchema, checkoutSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
 
@@ -95,7 +95,8 @@ export async function updateCartLineForm(site: string, locale: string, formData:
   redirect(`${await getBase()}/${locale}/cart`);
 }
 
-export type CheckoutState = { fieldErrors?: FieldErrors };
+/** closed: orders are switched off (checkoutMode); nothing was created. */
+export type CheckoutState = { fieldErrors?: FieldErrors; closed?: boolean };
 
 /** Used with useActionState: returns field errors (same codes as the browser), redirects on success. */
 export async function placeOrder(
@@ -104,6 +105,10 @@ export async function placeOrder(
   _prev: CheckoutState,
   formData: FormData,
 ): Promise<CheckoutState> {
+  // Before anything else: no order, no stock reserved, whatever the form says.
+  const mode = checkoutMode();
+  if (mode === "closed") return { closed: true };
+
   const { store } = await getStoreAndLocale(site, locale);
   const base = await getBase();
 
@@ -126,7 +131,7 @@ export async function placeOrder(
   const orderUrl = `${base}/${locale}/order/${order.id}`;
 
   // Test mode: no payment provider configured yet.
-  if (!getStripe()) {
+  if (mode === "test") {
     await markOrderPaid(order.id, "test", `test_${order.id}`);
     await clearCart(store.id);
     redirect(orderUrl);

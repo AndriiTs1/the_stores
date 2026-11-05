@@ -2,6 +2,7 @@ import { getCartLines } from "@/lib/cart";
 import { getDict } from "@/lib/i18n";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 import { updateCartLine, updateCartLineForm } from "../actions";
+import { checkoutMode } from "@/lib/payments";
 import { CartView } from "./cart-view";
 
 export async function generateMetadata({ params }: PageProps<"/s/[site]/[locale]/cart">) {
@@ -31,6 +32,7 @@ export default async function CartPage({ params }: PageProps<"/s/[site]/[locale]
         vatRateBp: store.vatRateBp,
       }}
       d={getDict(locale)}
+      closed={checkoutMode() === "closed"}
       update={updateCartLine.bind(null, site, locale)}
       formAction={updateCartLineForm.bind(null, site, locale)}
     />

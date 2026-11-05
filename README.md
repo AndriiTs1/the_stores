@@ -7,9 +7,9 @@ Next.js 16 · Prisma 7 · PostgreSQL (Neon) · Stripe · Tailwind 4.
 
 ```bash
 npm install                      # также генерирует Prisma Client
-cp .env.example .env             # указать DATABASE_URL
-npm run db:migrate -- --name init  # создаст prisma/migrations/… и таблицы
-npm run db:seed                  # демо-магазин demo, 4 товара, 35 вариантов
+cp .env.example .env             # DATABASE_URL — ветка Neon dev или локальный Postgres; PRODUCTION_DB_HOST
+npm run db:deploy                # применить миграции
+npm run db:seed                  # демо-магазин demo: 16 товаров, 3 вымышленных бренда, плейсхолдеры в public/demo
 npm run dev
 ```
 
@@ -17,12 +17,36 @@ npm run dev
 
 | Адрес | Что это |
 |---|---|
-| http://localhost:3000 | главная платформы, список магазинов |
+| http://localhost:3000 | редирект на магазин по умолчанию (`DEFAULT_STORE_SLUG`, иначе `demo`) → `/s/demo`, язык по cookie или браузеру |
+| http://localhost:3000/en | тот же магазин на выбранном языке → `/s/demo/en` |
+| http://localhost:3000/platform | список магазинов (пароль админки) |
 | http://localhost:3000/s/demo | магазин по пути (удобно для превью) |
 | http://demo.localhost:3000 | тот же магазин на поддомене (Chrome и Firefox понимают *.localhost) |
 | http://localhost:3000/s/demo/admin | админка (в dev без пароля) |
+| http://localhost:3000/admin/login | вход в админку: адрес магазина → пароль в окне браузера |
 
-Без `STRIPE_SECRET_KEY` магазин работает в **тестовом режиме**: заказ сразу помечается оплаченным.
+Без `STRIPE_SECRET_KEY` магазин локально работает в **тестовом режиме**: заказ сразу помечается оплаченным.
+На Vercel (Preview и Production) без ключа оформление заказа **выключено**: кнопка неактивна («Bestellungen sind bald
+möglich»), серверное действие заказ не создаёт.
+
+## Базы данных
+
+Три ветки Neon в одном проекте, у каждой своя база:
+
+| Ветка Neon | Где прописана | Для чего |
+|---|---|---|
+| `main` | Vercel → Production, `DATABASE_URL` | живой магазин |
+| `preview` | Vercel → Preview, `DATABASE_URL` | превью-деплои веток и PR |
+| `dev` | локальный `.env`, `DATABASE_URL` | разработка, сид, E2E-тесты |
+
+- **Сид никогда не запускается на Production.** `npm run db:seed` удаляет и создаёт демо-магазин заново, поэтому
+  `prisma/seed-guard.ts` его останавливает: для любой нелокальной базы нужна переменная `PRODUCTION_DB_HOST` (хост
+  базы Production, без `-pooler`), и хост `DATABASE_URL` не должен с ней совпадать; на `VERCEL_ENV=production` —
+  никогда.
+- Тексты демо-магазина (название, полоса, баннер) на существующей базе обновляет `npm run db:update-demo`: только
+  обновление этой записи, без удаления данных, можно запускать повторно.
+- Миграции при деплое **не** применяются (`build` = `prisma generate && next build`): перед деплоем
+  `npm run db:deploy` с `DATABASE_URL` нужной ветки — сначала `preview`, после проверки `main`.
 
 ## Как устроено
 
@@ -66,8 +90,10 @@ src/app/api/stripe/webhook/  вебхук Stripe
 
 ## Деплой на Vercel + Neon
 
-- `DATABASE_URL` (pooled от Neon), `ROOT_DOMAIN`, `ADMIN_PASSWORD`, ключи Stripe.
-- Миграции: `npm run db:deploy` (локально перед деплоем или шагом в CI).
+- `DATABASE_URL` (pooled от Neon, ветка по таблице выше), `ROOT_DOMAIN`, `ADMIN_PASSWORD`, ключи Stripe.
+- `ROOT_DOMAIN` нужен только Production. На превью (`VERCEL_ENV=preview`) корневыми считаются адреса самого деплоя
+  (`VERCEL_BRANCH_URL`, `VERCEL_URL`): `/` открывает магазин по умолчанию.
+- Миграции: `npm run db:deploy` (см. «Базы данных»).
 - Поддомены магазинов: wildcard-домен `*.your-domain.ch` в настройках Vercel.
 
 ## Что проверено

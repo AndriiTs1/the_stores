@@ -3,7 +3,7 @@ import { OrderSummary } from "@/components/order-summary";
 import { getCartLines, type CartLine } from "@/lib/cart";
 import { getDict, optionLabel, type Dict } from "@/lib/i18n";
 import { computeCart, formatMoney } from "@/lib/money";
-import { getStripe } from "@/lib/payments";
+import { checkoutMode } from "@/lib/payments";
 import { getBase, getStoreAndLocale, languageAlternates } from "@/lib/tenant";
 import { checkoutDraftKey } from "@/lib/checkout-draft";
 import { placeOrder } from "../actions";
@@ -28,6 +28,7 @@ export default async function CheckoutPage({ params }: PageProps<"/s/[site]/[loc
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
   const base = await getBase();
   const d = getDict(locale);
+  const mode = checkoutMode();
 
   const lines = await getCartLines(store.id, locale);
   if (lines.length === 0) redirect(`${base}/${locale}/cart`);
@@ -80,13 +81,14 @@ export default async function CheckoutPage({ params }: PageProps<"/s/[site]/[loc
           zip: d.zip,
           city: d.city,
           country: d.country,
-          submit: `${d.payNow} · ${fmt(totals.total)}`,
+          submit: mode === "closed" ? d.ordersClosed : `${d.payNow} · ${fmt(totals.total)}`,
         }}
         countries={(["CH", "LI"] as const).map((c) => ({
           value: c,
           label: COUNTRY_NAMES[c][locale],
         }))}
-        note={getStripe() ? undefined : d.testModeNote}
+        closed={mode === "closed"}
+        note={mode === "test" ? d.testModeNote : undefined}
       />
 
       {/* Desktop: summary in a sticky column on the right. */}
