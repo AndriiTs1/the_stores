@@ -27,6 +27,7 @@ export function CheckoutForm({
   locale,
   labels,
   countries,
+  closed = false,
   note,
 }: {
   action: (state: CheckoutState, formData: FormData) => Promise<CheckoutState>;
@@ -35,6 +36,8 @@ export function CheckoutForm({
   locale: string;
   labels: Labels;
   countries: { value: CheckoutInput["country"]; label: string }[];
+  /** Orders are switched off: the button stays disabled (labels.submit then says so). */
+  closed?: boolean;
   note?: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, {});
@@ -177,7 +180,7 @@ export function CheckoutForm({
         </div>
       </section>
 
-      <button type="submit" className="btn btn-accent w-full" disabled={isPending} aria-busy={isPending}>
+      <button type="submit" className="btn btn-accent w-full" disabled={closed || isPending} aria-busy={isPending}>
         <span className="truncate">{labels.submit}</span>
       </button>
       {note && <p className="text-center text-xs text-muted">{note}</p>}
