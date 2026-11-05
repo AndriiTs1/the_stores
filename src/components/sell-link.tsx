@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-/** Outline plus, 2px stroke at any size (the "Sell" circle in the bottom bar, the header button). */
+/** Outline plus, 2px stroke at any size (the header "Sell" button). */
 export function PlusIcon({ size = 24, "aria-hidden": ariaHidden }: { size?: number; "aria-hidden"?: boolean }) {
   return (
     <svg
@@ -19,16 +19,16 @@ export function PlusIcon({ size = 24, "aria-hidden": ariaHidden }: { size?: numb
 }
 
 /**
- * Header button to the sell page (from md; phones have the raised bar button): red outline and text, no fill.
- * The 1.5px edge is a 1px border plus a 0.5px inset shadow (Chrome draws a 1.5px border as 1px). Only the fill
- * transitions: transition-colors would also fade the focus outline in from red.
+ * Header button to the sell page (from md; phones have the bar tab): a light 1px outline, black text, no fill;
+ * hover darkens the edge and adds the grey field fill. Only border and fill transition: transition-colors would
+ * also animate the focus outline's colour.
  */
 export function SellHeaderLink({ href, label, ariaLabel }: { href: string; label: string; ariaLabel: string }) {
   return (
     <Link
       href={href}
       aria-label={ariaLabel}
-      className="hidden h-10 shrink-0 items-center gap-1.5 rounded-md border border-accent px-3.5 text-sm font-bold text-accent shadow-[inset_0_0_0_0.5px_var(--accent)] transition-[background-color] hover:bg-[rgb(200_16_46/0.06)] md:inline-flex"
+      className="hidden h-10 shrink-0 items-center gap-1.5 rounded-md border border-[#d6d6d2] px-3.5 text-sm font-medium text-foreground transition-[border-color,background-color] hover:border-meta hover:bg-field md:inline-flex"
     >
       <PlusIcon aria-hidden size={18} />
       {label}

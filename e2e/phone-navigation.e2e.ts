@@ -156,15 +156,22 @@ test("bar labels: line height at least 1.3, nothing cut off in any language at 3
   }
 });
 
-test("the raised Sell button opens the placeholder, marked active; nothing to fill in, not indexed", async ({
-  page,
-}) => {
+test("the Sell tab opens the placeholder, marked active; nothing to fill in, not indexed", async ({ page }) => {
   await page.goto(STORE);
   await expect(page.getByText("Gut zu wissen")).toHaveCount(0); // no shipping block on the home page
   await expect(page.locator("main")).not.toContainText("Versand");
 
   const sell = bar(page).getByRole("link", { name: "Artikel verkaufen" });
   await expect(bar(page).locator("li")).toHaveText(["Start", "Kategorien", "Verkaufen", "Merkliste", "Konto"]);
+  await expect(sell).toHaveCSS("color", "rgb(94, 94, 94)"); // grey like the other tabs until its page is open
+  // All five the same height, the labels on one line.
+  const boxes = await bar(page)
+    .locator("li > *")
+    .evaluateAll((els) =>
+      els.map((e) => [e.getBoundingClientRect().height, e.querySelector("span.truncate")!.getBoundingClientRect().top]),
+    );
+  expect(new Set(boxes.map(([h]) => h)).size).toBe(1);
+  expect(new Set(boxes.map(([, top]) => top)).size).toBe(1);
   await sell.tap();
   await expect(page).toHaveURL(/\/s\/demo\/de\/sell$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Bald: Verkaufe deine Kleidung");
@@ -180,7 +187,7 @@ test("the raised Sell button opens the placeholder, marked active; nothing to fi
 
 test("the Sell button and its page in every language", async ({ page }) => {
   const names = {
-    fr: ["Vendre un article", "Bientôt\u00a0: vends tes vêtements"],
+    fr: ["Vendre un article", "Bientôt\u00a0: vendez vos vêtements"],
     it: ["Vendi un articolo", "Presto: vendi i tuoi vestiti"],
     en: ["Sell an item", "Coming soon: sell your clothes"],
   };
@@ -202,6 +209,12 @@ test.describe("desktop", () => {
     const heart = page.locator("header").getByRole("link", { name: "Merkliste" });
     const [s, h] = [await sell.boundingBox(), await heart.boundingBox()];
     expect(s!.height).toBe(40);
+    await expect(sell).toHaveCSS("border-color", "rgb(214, 214, 210)");
+    await expect(sell).toHaveCSS("color", "rgb(17, 17, 17)");
+    await expect(sell).toHaveCSS("font-weight", "500");
+    await sell.hover();
+    await expect(sell).toHaveCSS("border-color", "rgb(94, 94, 94)");
+    await expect(sell).toHaveCSS("background-color", "rgb(244, 244, 242)");
     expect(s!.x + s!.width).toBeLessThan(h!.x);
     await expect(sell).toHaveText("Verkaufen");
     await sell.click();

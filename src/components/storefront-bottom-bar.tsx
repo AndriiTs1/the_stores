@@ -2,15 +2,19 @@
 
 import { usePathname } from "next/navigation";
 import { useId, useRef, type ReactNode } from "react";
-import { Heart, House, SquaresFour, User } from "@phosphor-icons/react";
+import { Heart, House, PlusSquare, SquaresFour, User } from "@phosphor-icons/react";
 import { AccountPanel, openAccountPanel, useAccountPanelOpen } from "@/components/account-panel";
 import { BottomBar, type BottomBarItem } from "@/components/bottom-bar";
-import { PlusIcon } from "@/components/sell-link";
 import { useWishlist } from "@/components/wishlist";
 import { activeTab, storePath, tabHref, type Tab } from "@/lib/storefront-tabs";
 
+/** Plus in a rounded square, drawn at 24px (its square is small for the box) in the bar's 22px icon slot. */
+function SellIcon(props: { "aria-hidden"?: boolean }) {
+  return <PlusSquare {...props} size={24} className="-m-px" />;
+}
+
 /**
- * The storefront's phone bar: one item per tab (lib/storefront-tabs), the current tab red; "Sell" in the middle, raised.
+ * The storefront's phone bar: one item per tab (lib/storefront-tabs), the current tab red; "Sell" in the middle.
  * Account opens the side panel with `accountPanel` instead of going to /account.
  */
 export function StorefrontBottomBar({
@@ -52,7 +56,7 @@ export function StorefrontBottomBar({
         items={[
           item("start", labels.start, House),
           item("categories", labels.categories, SquaresFour),
-          { ...item("sell", labels.sell, PlusIcon), raised: true, ariaLabel: labels.sellLabel },
+          { ...item("sell", labels.sell, SellIcon), ariaLabel: labels.sellLabel },
           {
             ...item("wishlist", labels.wishlist, Heart),
             badge: saved,

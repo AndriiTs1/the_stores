@@ -183,7 +183,7 @@ const dict: Record<Locale, Dict> = {
     navHome: "Accueil",
     sell: "Vendre",
     sellLabel: "Vendre un article",
-    sellTitle: "Bientôt\u00a0: vends tes vêtements",
+    sellTitle: "Bientôt\u00a0: vendez vos vêtements",
     sellText: "Cette fonction est en préparation.",
     backToShop: "Retour à la boutique",
     sale: "Soldes",

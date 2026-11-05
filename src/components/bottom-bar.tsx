@@ -33,14 +33,11 @@ export type BottomBarItem = {
   badge?: number;
   /** Accessible name when the badge needs words (e.g. "Wishlist, 2 items"); else the label. */
   ariaLabel?: string;
-  /** The bar's main action: the icon white in a red circle that rises above the bar. */
-  raised?: boolean;
 };
 
 /**
  * Phone-only bar (< md): white, full width, pinned to the bottom above the iPhone safe area, a 1px line on top.
  * Equal columns, each the full bar height (56px): an outline icon over an 11px label, grey, the active one red.
- * A `raised` item's icon sits in a 52px red circle sticking out above the bar; its label is in line with the others.
  * Hidden (fade + slide down) on checkout and while typing.
  */
 export function BottomBar({ items }: { items: BottomBarItem[] }) {
@@ -57,23 +54,14 @@ export function BottomBar({ items }: { items: BottomBarItem[] }) {
       }`}
     >
       <ul className="grid h-14" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
-        {items.map(({ id, label, icon: Icon, href, dialog, active = false, badge = 0, ariaLabel, raised = false }) => {
+        {items.map(({ id, label, icon: Icon, href, dialog, active = false, badge = 0, ariaLabel }) => {
           const className = `flex h-14 w-full min-w-0 flex-col items-center justify-center gap-1 rounded [-webkit-tap-highlight-color:transparent] ${
             active || dialog?.open ? "text-accent" : "text-meta active:text-foreground"
           }`;
           const face = (
             <>
               <span className="relative">
-                {raised ? (
-                  // Keeps the 22px icon slot (labels in line); the circle grows up from just above the label.
-                  <span className="block size-[22px]">
-                    <span className="absolute -bottom-1 left-1/2 inline-flex size-[52px] -translate-x-1/2 items-center justify-center rounded-full bg-accent text-accent-ink shadow-[0_2px_6px_rgb(0_0_0/0.2)]">
-                      <Icon aria-hidden size={26} />
-                    </span>
-                  </span>
-                ) : (
-                  <Icon aria-hidden size={22} />
-                )}
+                <Icon aria-hidden size={22} />
                 {badge > 0 && (
                   <span
                     aria-hidden
