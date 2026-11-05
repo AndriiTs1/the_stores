@@ -9,7 +9,8 @@ const focused = (page: Page) =>
       tag: e.tagName,
       field: e.classList.contains("input"),
       onBar: !!e.closest(".bg-foreground"),
-      outline: c.outlineStyle === "none" ? "none" : `${c.outlineStyle} ${c.outlineWidth} ${c.outlineColor} ${c.outlineOffset}`,
+      outline:
+        c.outlineStyle === "none" ? "none" : `${c.outlineStyle} ${c.outlineWidth} ${c.outlineColor} ${c.outlineOffset}`,
     };
   });
 
@@ -44,11 +45,66 @@ for (const viewport of [
   });
 }
 
-test("product page: size buttons get the grey outline at once (no colour transition on the outline)", async ({ page }) => {
+test("product page: size buttons get the grey outline at once (no colour transition on the outline)", async ({
+  page,
+}) => {
   await page.goto("/s/demo/de/p/t-shirt-classic");
   const size = page.getByRole("button", { name: "M", exact: true });
   await size.focus();
   await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Tab");
   expect((await focused(page)).outline).toBe(GREY);
+});
+
+test.describe("logo on a touch phone (Chrome device mode)", () => {
+  test.use({ viewport: { width: 390, height: 652 }, hasTouch: true, isMobile: true });
+
+  /** After a scenario: even a key press (Esc, Shift — which make an already focused element :focus-visible) leaves the logo without a ring. */
+  const expectNoLogoRing = async (page: Page, step: string) => {
+    for (const key of ["Escape", "Shift"]) await page.keyboard.press(key);
+    const logo = page.locator("header a").first();
+    expect(await logo.evaluate((a) => getComputedStyle(a).outlineStyle), step).toBe("none");
+  };
+
+  test("no ring after load, tapping the logo, closing the account menu, going back", async ({ page }) => {
+    const logo = page.locator("header a").first();
+    await page.goto("/s/demo/it");
+    await expectNoLogoRing(page, "load");
+
+    await logo.tap(); // the page already open
+    await expectNoLogoRing(page, "tap on home");
+
+    await page.goto("/s/demo/it/categories");
+    await logo.tap();
+    await expect(page).toHaveURL(/\/s\/demo\/it$/);
+    await expectNoLogoRing(page, "tap from another page");
+
+    const bar = page.locator("nav.fixed");
+    await bar.getByRole("button", { name: "Account" }).tap();
+    await page.getByRole("dialog").getByRole("button", { name: "Chiudi" }).tap();
+    await expectNoLogoRing(page, "close menu by the cross");
+    await bar.getByRole("button", { name: "Account" }).tap();
+    await page.getByRole("dialog").getByRole("link", { name: "Reso" }).tap();
+    await expect(page).toHaveURL(/\/info\/rueckgabe$/);
+    await expectNoLogoRing(page, "leave menu by a link");
+
+    await page.goBack();
+    await expect(page).toHaveURL(/\/s\/demo\/it$/);
+    await expectNoLogoRing(page, "back");
+  });
+
+  test("Tab still shows the grey ring, hugging the logo text", async ({ page }) => {
+    await page.goto("/s/demo/it");
+    const logo = page.locator("header a").first();
+    await logo.focus();
+    await page.keyboard.press("Shift"); // a key press: keyboard focus
+    expect(await logo.evaluate((a) => getComputedStyle(a).outline)).toBe("rgb(94, 94, 94) solid 2px");
+    const width = await logo.evaluate((a) => a.getBoundingClientRect().width);
+    const text = await logo.evaluate((a) => {
+      const r = document.createRange();
+      r.selectNodeContents(a);
+      return r.getBoundingClientRect().width;
+    });
+    expect(width).toBeLessThanOrEqual(text + 1);
+  });
 });

@@ -6,6 +6,7 @@ import { fontVariables } from "../../../fonts";
 import { AccountContent } from "@/components/account-content";
 import { MAIN_ID } from "@/components/account-panel";
 import { CartButton, CartCountProvider } from "@/components/cart-count";
+import { FocusOnNavigate } from "@/components/focus-on-navigate";
 import { StorefrontBottomBar } from "@/components/storefront-bottom-bar";
 import { LanguageButtons, LanguageButtonsFallback } from "@/components/language-picker";
 import { SearchForm } from "@/components/search-form";
@@ -80,10 +81,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                 and languages join the first row; from lg the search too. The 1px bottom line is an inset shadow. */}
             <header className="sticky top-0 z-40 bg-background shadow-[inset_0_-1px_0_var(--line)]">
               <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-2 py-2 lg:h-[72px] lg:flex-nowrap lg:gap-x-6 lg:py-0">
-                {/* Never truncated: shrinks by breakpoint and wraps to at most two lines on small phones. */}
+                {/* Never truncated: shrinks by breakpoint and wraps to at most two lines on small phones. As wide as
+                    the name (the focus ring hugs it); the cart is pushed right by its group's ml-auto. */}
                 <Link
                   href={`${base}/${locale}`}
-                  className="min-w-0 flex-1 break-words rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg md:flex-none lg:text-xl"
+                  className="min-w-0 break-words rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg lg:text-xl"
                 >
                   {store.name}
                 </Link>
@@ -98,7 +100,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                   labels={{ placeholder: d.searchPlaceholder, submit: d.navSearch }}
                   className="order-last w-full lg:order-none lg:ml-auto lg:w-auto lg:max-w-sm lg:flex-1"
                 />
-                <div className="flex shrink-0 items-center gap-2 md:ml-auto lg:ml-0">
+                <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
                   {/* From md the languages sit here; on phones they are on the account screen. */}
                   <div className="hidden md:block">
                     <Suspense fallback={<LanguageButtonsFallback locales={store.locales} current={locale} base={base} />}>
@@ -150,6 +152,7 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
               </p>
             </footer>
 
+            <FocusOnNavigate />
             <StorefrontBottomBar
               base={base}
               locale={locale}

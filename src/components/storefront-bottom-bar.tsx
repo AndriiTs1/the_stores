@@ -2,15 +2,15 @@
 
 import { usePathname } from "next/navigation";
 import { useId, useRef, type ReactNode } from "react";
-import { Heart, House, PlusSquare, SquaresFour, User } from "@phosphor-icons/react";
+import { Heart, House, PlusCircle, SquaresFour, User } from "@phosphor-icons/react";
 import { AccountPanel, openAccountPanel, useAccountPanelOpen } from "@/components/account-panel";
 import { BottomBar, type BottomBarItem } from "@/components/bottom-bar";
 import { useWishlist } from "@/components/wishlist";
 import { activeTab, storePath, tabHref, type Tab } from "@/lib/storefront-tabs";
 
-/** Plus in a rounded square, drawn at 24px (its square is small for the box) in the bar's 22px icon slot. */
+/** Plus in a circle, drawn at 24px (its circle is small for the box) in the bar's 22px icon slot. */
 function SellIcon(props: { "aria-hidden"?: boolean }) {
-  return <PlusSquare {...props} size={24} className="-m-px" />;
+  return <PlusCircle {...props} size={24} className="-m-px" />;
 }
 
 /**
