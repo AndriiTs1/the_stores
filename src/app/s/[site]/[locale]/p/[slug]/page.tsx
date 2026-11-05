@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { PhotoCredits, photoCredits } from "@/components/photo-credits";
 import { ProductImage } from "@/components/product-image";
 import { WishlistButton } from "@/components/wishlist";
 import { db } from "@/lib/db";
@@ -78,6 +79,7 @@ export default async function ProductPage({ params, searchParams }: PageProps<"/
             ))}
           </div>
         )}
+        <PhotoCredits credits={photoCredits(product.imageCredits)} label={d.photoCredit} />
       </div>
 
       <div className="min-w-0">

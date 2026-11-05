@@ -68,7 +68,7 @@ export async function imageSrc(
   cutOut?: { outline?: string },
 ): Promise<string | null> {
   if (!src) return null;
-  if (/^https?:\/\//.test(src)) return src;
+  if (/^https?:\/\//.test(src)) return remoteImage(src);
   const path = normalize(src.split("?")[0]);
   const type = TYPES[extname(path).toLowerCase()];
   if (!type || !path.startsWith("/") || path.includes("..")) return null;
@@ -79,6 +79,20 @@ export async function imageSrc(
   } catch {
     return null;
   }
+}
+
+/**
+ * A photo URL for the image renderer, which reads PNG and JPEG but not always WebP or AVIF: Unsplash photos are asked
+ * for as a 600px-wide JPEG (their CDN would otherwise pick a format by the request).
+ */
+export function remoteImage(src: string): string {
+  const url = new URL(src);
+  if (url.hostname !== "images.unsplash.com") return src;
+  url.searchParams.delete("auto");
+  url.searchParams.set("fm", "jpg");
+  url.searchParams.set("w", "600");
+  url.searchParams.set("h", "800");
+  return url.toString();
 }
 
 /** The SVG without the rectangle that fills its whole viewBox; its content traced in `outline`, if given. */

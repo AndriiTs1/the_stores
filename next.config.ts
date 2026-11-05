@@ -6,6 +6,10 @@ const nextConfig: NextConfig = {
   // `use cache` + cacheTag(`store:${id}`), invalidated from the admin actions.
   cacheComponents: false,
   devIndicators: false,
+  // Demo product photos come from Unsplash's image CDN (prisma/demo-photos.ts).
+  images: {
+    remotePatterns: [{ protocol: "https", hostname: "images.unsplash.com" }],
+  },
   // Generated images (link previews, icons; lib/og.ts) read these files at request time by a computed path,
   // which file tracing can't follow: ship them with the functions explicitly.
   outputFileTracingIncludes: {
