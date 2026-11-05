@@ -9,8 +9,8 @@ export type Pill = { href: string; label: ReactNode; sale?: boolean };
 /**
  * Phones only (< md), under the header on the catalogue pages (home, categories, sale, all products): the store's
  * top categories as a row of outlined pills, Sale last in red. The row scrolls sideways and snaps, without a
- * scrollbar; the next pill peeks in at the edge. The current category gets a 1.5px dark outline (no black fill),
- * drawn as an inset shadow so the pill keeps its size. Labels keep the width of their longest translation.
+ * scrollbar; the next pill peeks in at the edge. The current category gets a 1.5px dark outline (no black fill, no
+ * red), Sale a red one; drawn as an inset shadow so the pill keeps its size. Labels keep the width of their longest translation.
  */
 export function CategoryPills({ pills, home, label }: { pills: Pill[]; home: string; label: string }) {
   const pathname = usePathname();
@@ -29,7 +29,11 @@ export function CategoryPills({ pills, home, label }: { pills: Pill[]; home: str
                 aria-current={current ? "page" : undefined}
                 className={`inline-flex h-10 items-center whitespace-nowrap rounded-[20px] border px-4 text-sm ${
                   p.sale ? "border-accent font-bold text-accent" : "border-[#d6d6d2] font-medium text-foreground"
-                } ${current ? "border-transparent shadow-[inset_0_0_0_1.5px_var(--foreground)]" : ""}`}
+                } ${
+                  current
+                    ? `border-transparent ${p.sale ? "shadow-[inset_0_0_0_1.5px_var(--accent)]" : "shadow-[inset_0_0_0_1.5px_var(--foreground)]"}`
+                    : ""
+                }`}
               >
                 {p.label}
               </Link>

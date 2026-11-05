@@ -108,7 +108,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                   items={nav}
                   label={d.mainNav}
                   className="hidden shrink-0 gap-4 md:flex lg:gap-5"
-                  linkClassName="rounded text-sm font-semibold hover:text-accent aria-[current=page]:text-accent"
+                  // Current item: dark text with a 2px underline in its own colour (red for Sale); hover a thin one.
+                  // Every item is semibold already, so marking one never changes its width. The underline is set on
+                  // the label's spans too (**:): a translated label is an inline grid (StableText), which a link's
+                  // underline doesn't reach.
+                  linkClassName="rounded text-sm font-semibold decoration-2 underline-offset-[6px] **:decoration-2 **:underline-offset-[6px] aria-[current=page]:underline aria-[current=page]:**:underline not-aria-[current=page]:hover:underline not-aria-[current=page]:hover:decoration-1 not-aria-[current=page]:hover:**:underline not-aria-[current=page]:hover:**:decoration-1"
                 />
                 <SearchForm
                   action={`${base}/${locale}/search`}

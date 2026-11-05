@@ -4,7 +4,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-/** `accent`: the Sale item, red and bold. */
+/** `accent`: the Sale item, always red and bold (the only red in the menu). */
 export type NavItem = { href: string; label: ReactNode; accent?: boolean };
 
 /** Header navigation (the store's collections); the current page is marked with aria-current. */
