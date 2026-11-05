@@ -1,6 +1,28 @@
 # Product lines and sellers: schema proposal (step A)
 
-Status: **proposal, not applied.** No migration file, no code change, nothing run against any database. Waiting for an «ok».
+Status: **agreed, migration `20261105204612_product_lines_sellers` applied on dev and preview.** Production: not yet.
+
+## Decisions (answers to the questions in section 9)
+
+| # | Decision |
+|---|---|
+| 1 | Seller status: `PENDING`, `ACTIVE`, `PAUSED`, `BLOCKED` (default `PENDING`; the HOUSE seller is `ACTIVE`). |
+| 2 | A NEW product may have a former price (promotion); an OUTLET product may have none. «Nur reduziert» filters by the former price in any line. |
+| 3 | Triggers in the database for «PRIVATE → only PRELOVED» (product insert/update and seller type change), plus the check in code (`src/lib/product-rules.ts`) with a readable error and a test. |
+| 4 | Existing former prices → `OUR_PREVIOUS`. |
+| 5 | `ProductVariant.compareAtPriceSince` (nullable) added now. |
+| 6 | HOUSE seller: slug `house`, name = store name; the product page shows «Verkauft von {name}». |
+| 7 | `Seller.brandId` nullable → `Brand` (a BRAND seller may link its brand). |
+| 8 | `Product.isNew` stays. Rule: migrations only add; removals get their own migration after the code is live. |
+| 9 | Condition on the product. |
+
+Checks done on dev:
+- `prisma migrate diff` from the database to the schema: empty (CHECKs and triggers don't show as drift);
+- the code of `main` (without this branch) on the migrated database: 200 on home, category, product, cart, sale, all products;
+- the triggers refuse PRIVATE + NEW and HOUSE → PRIVATE; the CHECK refuses PRELOVED without a condition;
+- seed and `db:update-demo` create every product with a seller (none without).
+
+The SQL below was the draft; the applied file differs only in: seller status `PENDING` by default, `Seller.brandId`, `compareAtPriceSince`, and the triggers always included.
 
 Goal of the data change: every product belongs to one of three **lines** — Outlet, Neu, Second Story — and to one **seller** (the store itself, a brand, an outlet shop, a private person). The storefront work (line switcher `?line=`, Outlet instead of Sale, `/sale` → 301 `/outlet`, categories as the item type) comes in later steps.
 
@@ -39,8 +61,10 @@ On the dev database (read-only count, demo store, all products ACTIVE): **14 →
 +}
 +
 +enum SellerStatus {
++  PENDING
 +  ACTIVE
-+  PAUSED // products hidden from the storefront, kept in the database (see question 1)
++  PAUSED
++  BLOCKED
 +}
 +
 +enum CompareAtPriceType {
