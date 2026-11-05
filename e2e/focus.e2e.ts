@@ -68,13 +68,15 @@ test.describe("logo on a touch phone (Chrome device mode)", () => {
 
   test("no ring after load, tapping the logo, closing the account menu, going back", async ({ page }) => {
     const logo = page.locator("header a").first();
-    await page.goto("/s/demo/it");
+    // networkidle: hydrated. Before that the logo is a plain link and a tap reloads the page (focus starts afresh).
+    await page.goto("/s/demo/it", { waitUntil: "networkidle" });
     await expectNoLogoRing(page, "load");
 
     await logo.tap(); // the page already open
+    await expect(page.locator("main")).toBeFocused();
     await expectNoLogoRing(page, "tap on home");
 
-    await page.goto("/s/demo/it/categories");
+    await page.goto("/s/demo/it/categories", { waitUntil: "networkidle" });
     await logo.tap();
     await expect(page).toHaveURL(/\/s\/demo\/it$/);
     await expectNoLogoRing(page, "tap from another page");
