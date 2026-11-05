@@ -8,6 +8,11 @@ export function isLocale(value: string): value is Locale {
 export type Localized = Partial<Record<Locale, string>>;
 
 /** Pick the text for a locale from a JSON field, falling back to German, then anything. */
+/** og:locale of a page language: the Swiss variant (de_CH, fr_CH, it_CH, en_CH). */
+export function ogLocale(locale: string): string {
+  return `${locale}_CH`;
+}
+
 export function tr(value: unknown, locale: string): string {
   if (!value || typeof value !== "object") return typeof value === "string" ? value : "";
   const v = value as Record<string, string>;

@@ -2,7 +2,7 @@ import { cache } from "react";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { db } from "./db";
-import { isLocale } from "./i18n";
+import { isLocale, ogLocale } from "./i18n";
 
 /**
  * The proxy rewrites every tenant request to /s/<site>/...
@@ -18,6 +18,14 @@ export const getStore = cache(async (site: string) => {
 });
 
 export type Store = Awaited<ReturnType<typeof getStore>>;
+
+/**
+ * Open Graph fields every store page shares. A page that sets its own openGraph replaces the layout's whole object,
+ * so it spreads these in. og:title and og:description follow the page's title and description.
+ */
+export function storeOpenGraph(store: Store, locale: string) {
+  return { siteName: store.name, locale: ogLocale(locale), type: "website" as const };
+}
 
 export async function getStoreAndLocale(site: string, locale: string) {
   const store = await getStore(site);
