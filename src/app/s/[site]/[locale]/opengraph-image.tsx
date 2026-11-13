@@ -1,4 +1,6 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { db } from "@/lib/db";
 import { tr } from "@/lib/i18n";
 import { ARCHIVO, ARCHIVO_EXPANDED, imageSrc, OG, ogFonts } from "@/lib/og";
@@ -18,6 +20,13 @@ export const contentType = "image/png";
 export default async function Image({ params }: { params: Promise<{ site: string; locale: string }> }) {
   const { site, locale: rawLocale } = await params;
   const { store, locale } = await getStoreAndLocale(site, rawLocale);
+
+  if (store.slug === "demo") {
+    const image = await readFile(join(process.cwd(), "public/branding/thestores-og-1200.png"));
+    return new Response(image, {
+      headers: { "Content-Type": "image/png" },
+    });
+  }
   const products = await db.product.findMany({
     where: { storeId: store.id, status: "ACTIVE", images: { isEmpty: false } },
     orderBy: [{ createdAt: "desc" }, { id: "desc" }],
