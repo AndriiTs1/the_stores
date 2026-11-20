@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { headers } from "next/headers";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { isAdminAuthorized } from "@/lib/admin-auth";
+import { getCurrentUser, requirePlatformRole } from "@/lib/authorization";
 
 export const metadata = { title: "Stores" };
 
@@ -13,6 +14,11 @@ export const metadata = { title: "Stores" };
  */
 export default async function PlatformStores() {
   if (!isAdminAuthorized((await headers()).get("authorization"))) notFound();
+
+  const user = await getCurrentUser();
+  if (!user) redirect("/login");
+
+  await requirePlatformRole(["OWNER", "ADMIN"]);
 
   const stores = await db.store.findMany({ orderBy: { createdAt: "asc" } });
 

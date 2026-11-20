@@ -35,7 +35,7 @@ export default async function AdminDashboard({ params }: PageProps<"/s/[site]/ad
       <h1 className="text-2xl font-black tracking-tight">Dashboard</h1>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
         {stats.map((s) => (
-          <div key={s.label} className="rounded-lg bg-background p-4 ring-1 ring-line">
+          <div key={s.label} className={`flex flex-col items-center justify-center rounded-lg bg-background p-4 text-center ring-1 ring-line ${s.label === "Variants with ≤ 2 in stock" ? "col-span-2 md:col-span-1" : ""}`}>
             <p className="text-xs text-muted">{s.label}</p>
             <p className="mt-1 text-xl font-bold">{s.value}</p>
           </div>

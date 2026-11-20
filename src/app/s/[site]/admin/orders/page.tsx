@@ -22,12 +22,12 @@ export default async function AdminOrders({ params, searchParams }: PageProps<"/
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-black tracking-tight">Orders</h1>
-      <div className="flex flex-wrap gap-2 text-sm">
+      <div className="grid grid-cols-3 gap-2 text-sm sm:flex sm:flex-wrap">
         {[undefined, ...Object.values(OrderStatus)].map((s) => (
           <Link
             key={s ?? "all"}
             href={`${base}/admin/orders${s ? `?status=${s}` : ""}`}
-            className={`rounded-full px-3 py-1 ring-1 ${
+            className={`flex min-h-10 items-center justify-center rounded-full px-1 py-2 text-center text-[11px] ring-1 sm:min-h-0 sm:px-3 sm:py-1 sm:text-sm ${
               filter === s ? "bg-foreground text-background ring-foreground" : "bg-background ring-line"
             }`}
           >
@@ -36,7 +36,47 @@ export default async function AdminOrders({ params, searchParams }: PageProps<"/
         ))}
       </div>
 
-      <div className="overflow-x-auto rounded-lg bg-background ring-1 ring-line">
+      {/* Mobile: order cards */}
+      <div className="space-y-3 sm:hidden">
+        {orders.length === 0 ? (
+          <div className="rounded-xl bg-background px-5 py-12 text-center ring-1 ring-line">
+            <p className="text-sm font-medium">No orders yet</p>
+            <p className="mt-1 text-xs text-muted">
+              New orders will appear here.
+            </p>
+          </div>
+        ) : (
+          orders.map((o) => (
+            <Link
+              key={o.id}
+              href={`${base}/admin/orders/${o.id}`}
+              className="block rounded-xl bg-background p-4 ring-1 ring-line transition-colors hover:bg-surface"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <span className="font-semibold">#{o.number}</span>
+                <StatusBadge status={o.status} />
+              </div>
+              <p className="mt-1 text-xs text-muted">
+                {o.createdAt.toLocaleString("de-CH")}
+              </p>
+              <div className="mt-4 border-t border-line pt-3">
+                <p className="break-all text-sm">{o.email}</p>
+                <div className="mt-3 flex items-center justify-between gap-3">
+                  <span className="text-xs text-muted">
+                    {o._count.items} items
+                  </span>
+                  <span className="font-semibold">
+                    {formatMoney(o.total, "de", o.currency)}
+                  </span>
+                </div>
+              </div>
+            </Link>
+          ))
+        )}
+      </div>
+
+      {/* Desktop: full orders table */}
+      <div className="hidden overflow-x-auto rounded-lg bg-background ring-1 ring-line sm:block">
         <table className="w-full text-sm">
           <thead className="border-b border-line text-left text-xs uppercase text-muted">
             <tr>

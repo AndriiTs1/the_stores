@@ -2,11 +2,32 @@
 
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
+import { getCurrentUser } from "@/lib/authorization";
 import { cancelPendingOrder } from "@/lib/orders";
 import { getStore } from "@/lib/tenant";
 import { orderStatusSchema, productUpdateSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
 
-// Admin access is enforced in src/proxy.ts (Basic auth) — replace with real staff login later.
+// Server Actions must authorize each mutation independently of page/layout guards.
+async function requireStoreWriteAccess(storeId: string) {
+  const user = await getCurrentUser();
+  if (!user) throw new Error("UNAUTHORIZED");
+
+  const [platform, store] = await Promise.all([
+    db.platformMembership.findUnique({ where: { userId: user.id } }),
+    db.storeMembership.findUnique({
+      where: { userId_storeId: { userId: user.id, storeId } },
+    }),
+  ]);
+
+  const platformAllowed =
+    platform?.role === "OWNER" || platform?.role === "ADMIN";
+  const storeAllowed =
+    store?.role === "OWNER" || store?.role === "MANAGER";
+
+  if (!platformAllowed && !storeAllowed) {
+    throw new Error("FORBIDDEN");
+  }
+}
 
 export type ProductFormState = { fieldErrors?: FieldErrors; savedAt?: number };
 
@@ -29,6 +50,7 @@ export async function updateProduct(
   formData: FormData,
 ): Promise<ProductFormState> {
   const store = await getStore(site);
+  await requireStoreWriteAccess(store.id);
   const product = await db.product.findFirst({
     where: { id: productId, storeId: store.id },
     include: { variants: { include: { inventory: true } } },
@@ -63,6 +85,7 @@ export async function updateProduct(
 
 export async function setOrderStatus(site: string, orderId: string, formData: FormData) {
   const store = await getStore(site);
+  await requireStoreWriteAccess(store.id);
   const status = orderStatusSchema.parse(formData.get("status"));
   const order = await db.order.findFirst({ where: { id: orderId, storeId: store.id } });
   if (!order) throw new Error("Order not found");

@@ -110,6 +110,7 @@ model Store {
 
   domains     Domain[]
   staff       StaffUser[]
+  memberships StoreMembership[]
   categories  Category[]
   brands      Brand[]
   collections Collection[]
@@ -190,17 +191,18 @@ model Collection {
  * A brand and a seller are different things: a shop may sell many brands; a BRAND seller may link its Brand.
  */
 model Seller {
-  id        String       @id @default(cuid())
-  storeId   String
-  store     Store        @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  type      SellerType
-  name      String
-  slug      String
-  status    SellerStatus @default(PENDING)
-  brandId   String?
-  brand     Brand?       @relation(fields: [brandId], references: [id], onDelete: SetNull)
-  createdAt DateTime     @default(now())
-  products  Product[]
+  id          String             @id @default(cuid())
+  storeId     String
+  store       Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  type        SellerType
+  name        String
+  slug        String
+  status      SellerStatus       @default(PENDING)
+  brandId     String?
+  brand       Brand?             @relation(fields: [brandId], references: [id], onDelete: SetNull)
+  createdAt   DateTime           @default(now())
+  products    Product[]
+  memberships SellerMembership[]
 
   @@unique([storeId, slug])
   @@unique([id, storeId]) // target of Product's (sellerId, storeId): a product's seller is in its store
@@ -341,4 +343,127 @@ model OrderItem {
   unitPrice Int
   quantity  Int
   lineTotal Int
+}
+
+// Better Auth — identity and sessions
+model User {
+  id                  String               @id
+  name                String
+  email               String
+  emailVerified       Boolean              @default(false)
+  image               String?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  sessions            Session[]
+  accounts            Account[]
+  platformMemberships PlatformMembership[]
+  storeMemberships    StoreMembership[]
+  sellerMemberships   SellerMembership[]
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// Platform-wide administration
+enum PlatformAccessRole {
+  OWNER
+  ADMIN
+}
+
+enum StoreAccessRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum SellerAccessRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+model PlatformMembership {
+  id        String             @id @default(cuid())
+  userId    String             @unique
+  user      User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      PlatformAccessRole
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+}
+
+model StoreMembership {
+  id        String          @id @default(cuid())
+  userId    String
+  storeId   String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  store     Store           @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  role      StoreAccessRole
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([userId, storeId])
+  @@index([storeId, role])
+}
+
+model SellerMembership {
+  id        String           @id @default(cuid())
+  userId    String
+  sellerId  String
+  storeId   String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  seller    Seller           @relation(fields: [sellerId, storeId], references: [id, storeId], onDelete: Cascade)
+  role      SellerAccessRole
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@unique([userId, sellerId])
+  @@index([storeId, sellerId])
 }
