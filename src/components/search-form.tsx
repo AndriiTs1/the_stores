@@ -27,8 +27,15 @@ function SearchFormWithQuery(props: Props) {
 }
 
 function SearchFormView({ action, labels, className = "", query }: Props & { query: string }) {
+  const pathname = usePathname();
+  const isCheckout = pathname.endsWith("/checkout");
+
   return (
-    <Form action={action} role="search" className={`relative ${className}`}>
+    <Form
+      action={action}
+      role="search"
+      className={`relative ${className} ${isCheckout ? "hidden md:block" : ""}`}
+    >
       <input
         type="search"
         name="q"

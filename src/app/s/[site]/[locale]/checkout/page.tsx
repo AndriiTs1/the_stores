@@ -44,7 +44,7 @@ export default async function CheckoutPage({ params }: PageProps<"/s/[site]/[loc
   );
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-10">
+    <div className="mx-auto grid w-full gap-6 lg:max-w-[1100px] lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-x-8">
       <h1 className="text-2xl font-black tracking-tight sm:text-3xl lg:col-span-2">{d.checkout}</h1>
 
       {/* Phone and tablet: summary collapsed into one line above the form. */}
@@ -74,6 +74,9 @@ export default async function CheckoutPage({ params }: PageProps<"/s/[site]/[loc
         labels={{
           contact: d.contact,
           shipping: d.shipping,
+          shippingMethodInfo: d.shippingMethodInfo,
+          securePaymentInfo: d.securePaymentInfo,
+          shippingCost: totals.shipping === 0 ? d.free : fmt(totals.shipping),
           email: d.email,
           phone: d.phone,
           name: d.name,
@@ -81,13 +84,14 @@ export default async function CheckoutPage({ params }: PageProps<"/s/[site]/[loc
           zip: d.zip,
           city: d.city,
           country: d.country,
-          submit: mode === "closed" ? d.ordersClosed : `${d.payNow} · ${fmt(totals.total)}`,
+          submit: mode === "closed" ? d.ordersClosed : `${mode === "test" ? d.confirmOrder : d.payNow} · ${fmt(totals.total)}`,
         }}
         countries={(["CH", "LI"] as const).map((c) => ({
           value: c,
           label: COUNTRY_NAMES[c][locale],
         }))}
         closed={mode === "closed"}
+        paymentMode={mode}
         note={mode === "test" ? d.testModeNote : undefined}
       />
 

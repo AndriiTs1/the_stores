@@ -11,6 +11,9 @@ import type { CheckoutState } from "../actions";
 type Labels = {
   contact: string;
   shipping: string;
+  shippingMethodInfo: string;
+  securePaymentInfo: string;
+  shippingCost: string;
   email: string;
   phone: string;
   name: string;
@@ -28,6 +31,7 @@ export function CheckoutForm({
   labels,
   countries,
   closed = false,
+  paymentMode,
   note,
 }: {
   action: (state: CheckoutState, formData: FormData) => Promise<CheckoutState>;
@@ -38,6 +42,7 @@ export function CheckoutForm({
   countries: { value: CheckoutInput["country"]; label: string }[];
   /** Orders are switched off: the button stays disabled (labels.submit then says so). */
   closed?: boolean;
+  paymentMode: "stripe" | "test" | "closed";
   note?: string;
 }) {
   const [state, formAction, isPending] = useActionState(action, {});
@@ -109,7 +114,7 @@ export function CheckoutForm({
 
   return (
     // `action` is the no-JS fallback; with JS, handleSubmit validates first and calls preventDefault.
-    <form action={formAction} onSubmit={handleSubmit(onValid)} noValidate className="space-y-6">
+    <form action={formAction} onSubmit={handleSubmit(onValid)} noValidate className="space-y-6 lg:rounded-lg lg:border lg:border-line lg:p-5">
       <section className="space-y-3">
         <h2 className="font-semibold">{labels.contact}</h2>
         <div className="grid gap-x-4 gap-y-3 sm:grid-cols-2">
@@ -153,7 +158,7 @@ export function CheckoutForm({
           </div>
         </div>
         {/* Phone: one column · tablet: street, then PLZ | city · desktop: street | PLZ | city in one row. */}
-        <div className="grid gap-x-4 gap-y-3 sm:grid-cols-[7rem_minmax(0,1fr)] lg:grid-cols-[minmax(0,2fr)_7rem_minmax(0,1fr)]">
+        <div className="grid gap-x-4 gap-y-3 sm:grid-cols-[7rem_minmax(0,1fr)] lg:grid-cols-[minmax(0,2fr)_6rem_minmax(0,1.3fr)]">
           <TextField
             {...field("street")}
             className="sm:col-span-2 lg:col-span-1"
@@ -179,6 +184,18 @@ export function CheckoutForm({
           />
         </div>
       </section>
+
+      <div className="space-y-3 rounded-lg border border-line p-4 text-sm">
+        <div className="flex items-center justify-between gap-3">
+          <span className="font-medium">{labels.shippingMethodInfo}</span>
+          <span className="shrink-0 font-semibold">{labels.shippingCost}</span>
+        </div>
+        {paymentMode === "stripe" && (
+          <p className="border-t border-line pt-3 text-muted">
+            {labels.securePaymentInfo}
+          </p>
+        )}
+      </div>
 
       <button type="submit" className="btn btn-accent w-full" disabled={closed || isPending} aria-busy={isPending}>
         <span className="truncate">{labels.submit}</span>
