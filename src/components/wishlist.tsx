@@ -50,7 +50,7 @@ export function WishlistButton({
     >
       <span
         className={`inline-flex items-center justify-center rounded-full transition-colors ${
-          overlay ? "size-8 bg-background/90" : ""
+          overlay ? "size-[30px] bg-background/90 md:size-8" : ""
         } ${saved ? "text-accent" : "text-foreground hover:text-accent"}`}
       >
         <Heart aria-hidden size={overlay ? 18 : 24} weight={saved ? "fill" : "regular"} />

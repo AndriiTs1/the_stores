@@ -64,8 +64,7 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
             href={withLine(`${base}/${locale}/products`, asked)}
             className="shrink-0 rounded text-sm font-semibold underline-offset-4 hover:text-accent hover:underline"
           >
-            <span className="md:hidden">{d.viewAllShort}</span>
-            <span className="hidden md:inline">{d.viewAll}</span>
+            <span>{d.viewAll}</span>
           </Link>
         </div>
         {cards.length === 0 ? (
