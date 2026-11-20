@@ -5,8 +5,8 @@ import { redirect } from "next/navigation";
 import { clearCart, getCartLines, readCart, writeCart, type CartLine } from "@/lib/cart";
 import { db } from "@/lib/db";
 import { inventoryInclude, onlineStock } from "@/lib/inventory";
-import { createPendingOrder, markOrderPaid, OutOfStockError } from "@/lib/orders";
-import { checkoutMode, createCheckoutSession } from "@/lib/payments";
+import { cancelPendingOrder, createPendingOrder, markOrderPaid, OutOfStockError } from "@/lib/orders";
+import { checkoutMode, createCheckoutSession, getStripe } from "@/lib/payments";
 import { getBase, getStoreAndLocale } from "@/lib/tenant";
 import { addToCartSchema, cartLineSchema, checkoutSchema, toFieldErrors, type FieldErrors } from "@/lib/validation";
 
@@ -139,24 +139,71 @@ export async function placeOrder(
 
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
-  const session = await createCheckoutSession({
-    orderId: order.id,
-    storeSlug: store.slug,
-    email,
-    locale,
-    currency: store.currency,
-    shipping: order.shipping,
-    items: order.items.map((i) => ({
-      title: i.title,
-      options: i.options as Record<string, string>,
-      unitPrice: i.unitPrice,
-      quantity: i.quantity,
-    })),
-    successUrl: `${origin}${orderUrl}?session_id={CHECKOUT_SESSION_ID}`,
-    cancelUrl: `${origin}${base}/${locale}/checkout/cancel?order=${order.id}`,
-  });
+  let session;
+  try {
+    session = await createCheckoutSession({
+      orderId: order.id,
+      storeSlug: store.slug,
+      email,
+      locale,
+      currency: store.currency,
+      shipping: order.shipping,
+      items: order.items.map((i) => ({
+        title: i.title,
+        options: i.options as Record<string, string>,
+        unitPrice: i.unitPrice,
+        quantity: i.quantity,
+      })),
+      successUrl: `${origin}${orderUrl}?session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${origin}${base}/${locale}/checkout/cancel?order=${order.id}`,
+    });
+  } catch (error) {
+    try {
+      await cancelPendingOrder(order.id);
+    } catch (cancelError) {
+      throw new AggregateError(
+        [error, cancelError],
+        "Stripe checkout failed and order cancellation also failed",
+      );
+    }
+    throw error;
+  }
 
-  await db.order.update({ where: { id: order.id }, data: { paymentProvider: "stripe", paymentRef: session.id } });
+  try {
+    await db.order.update({
+      where: { id: order.id },
+      data: { paymentProvider: "stripe", paymentRef: session.id },
+    });
+  } catch (saveError) {
+    const stripe = getStripe();
+    if (!stripe) {
+      throw new AggregateError(
+        [saveError],
+        "Payment reference could not be saved and Stripe is unavailable",
+      );
+    }
+
+    try {
+      await stripe.checkout.sessions.expire(session.id);
+    } catch (expireError) {
+      throw new AggregateError(
+        [saveError, expireError],
+        "Payment reference could not be saved and Stripe session expiration failed",
+      );
+    }
+
+    try {
+      await cancelPendingOrder(order.id);
+    } catch (cancelError) {
+      throw new AggregateError(
+        [saveError, cancelError],
+        "Stripe session expired but order cancellation failed",
+      );
+    }
+
+    throw saveError;
+  }
+
   await clearCart(store.id);
   redirect(session.url!);
 }

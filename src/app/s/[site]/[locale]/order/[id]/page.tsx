@@ -32,9 +32,24 @@ export default async function OrderPage({ params, searchParams }: PageProps<"/s/
   const stripe = getStripe();
   if (order.status === "PENDING" && stripe && typeof session_id === "string" && session_id === order.paymentRef) {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    if (session.payment_status === "paid") {
-      await markOrderPaid(order.id, "stripe", session.id);
-      order = { ...order, status: "PAID" };
+    if (
+      session.payment_status === "paid" &&
+      session.mode === "payment" &&
+      session.id === order.paymentRef &&
+      order.paymentProvider === "stripe" &&
+      session.amount_total === order.total &&
+      session.currency?.toLowerCase() === order.currency.toLowerCase()
+    ) {
+      const result = await markOrderPaid(order.id, "stripe", session.id);
+      if (result.count === 1) {
+        order = { ...order, status: "PAID" };
+      } else {
+        const current = await db.order.findUnique({
+          where: { id: order.id },
+          select: { status: true },
+        });
+        if (current) order = { ...order, status: current.status };
+      }
     }
   }
 

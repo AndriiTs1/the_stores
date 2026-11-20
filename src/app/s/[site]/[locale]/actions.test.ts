@@ -2,12 +2,32 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { checkoutMode } from "@/lib/payments";
 
 // placeOrder with everything around it replaced: what matters is what it calls.
-const orders = vi.hoisted(() => ({ createPendingOrder: vi.fn(), markOrderPaid: vi.fn() }));
-vi.mock("@/lib/orders", () => ({ ...orders, OutOfStockError: class extends Error {} }));
-vi.mock("@/lib/db", () => ({ db: {} }));
+const orders = vi.hoisted(() => ({
+  createPendingOrder: vi.fn(),
+  markOrderPaid: vi.fn(),
+  cancelPendingOrder: vi.fn(),
+  createCheckoutSession: vi.fn(),
+  clearCart: vi.fn(),
+  orderUpdate: vi.fn(),
+  expireSession: vi.fn(),
+}));
+vi.mock("@/lib/orders", () => ({
+  createPendingOrder: orders.createPendingOrder,
+  markOrderPaid: orders.markOrderPaid,
+  cancelPendingOrder: orders.cancelPendingOrder,
+  OutOfStockError: class extends Error {},
+}));
+vi.mock("@/lib/payments", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/payments")>()),
+  createCheckoutSession: orders.createCheckoutSession,
+  getStripe: () => ({
+    checkout: { sessions: { expire: orders.expireSession } },
+  }),
+}));
+vi.mock("@/lib/db", () => ({ db: { order: { update: orders.orderUpdate } } }));
 vi.mock("@/lib/inventory", () => ({ inventoryInclude: {}, onlineStock: () => 0 }));
 vi.mock("@/lib/cart", () => ({
-  clearCart: vi.fn(),
+  clearCart: orders.clearCart,
   readCart: vi.fn(),
   writeCart: vi.fn(),
   getCartLines: vi.fn(async () => [{ variantId: "v1", quantity: 1, unitPrice: 1000 }]),
@@ -74,5 +94,102 @@ describe("placeOrder without a Stripe key", () => {
     await expect(placeOrder("demo", "de", {}, form())).rejects.toThrow("redirect /s/demo/de/order/o1");
     expect(orders.createPendingOrder).toHaveBeenCalledOnce();
     expect(orders.markOrderPaid).toHaveBeenCalledWith("o1", "test", "test_o1");
+  });
+});
+
+describe("placeOrder with Stripe", () => {
+  beforeEach(() => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_example");
+    orders.createPendingOrder.mockReset();
+    orders.cancelPendingOrder.mockReset();
+    orders.createCheckoutSession.mockReset();
+    orders.clearCart.mockReset();
+    orders.orderUpdate.mockReset();
+    orders.expireSession.mockReset();
+    orders.createCheckoutSession.mockResolvedValue({
+      id: "cs_test_123",
+      url: "https://checkout.stripe.com/test",
+    });
+    orders.createPendingOrder.mockResolvedValue({
+      id: "o1",
+      items: [],
+      shipping: 0,
+    });
+  });
+
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("cancels the pending order when Stripe session creation fails", async () => {
+    orders.createCheckoutSession.mockRejectedValue(new Error("Stripe unavailable"));
+
+    await expect(placeOrder("demo", "de", {}, form()))
+      .rejects.toThrow("Stripe unavailable");
+
+    expect(orders.createPendingOrder).toHaveBeenCalledOnce();
+    expect(orders.cancelPendingOrder).toHaveBeenCalledExactlyOnceWith("o1");
+    expect(orders.clearCart).not.toHaveBeenCalled();
+  });
+});
+
+describe("Stripe payment reference persistence", () => {
+  beforeEach(() => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_example");
+    orders.createPendingOrder.mockReset();
+    orders.cancelPendingOrder.mockReset();
+    orders.createCheckoutSession.mockReset();
+    orders.orderUpdate.mockReset();
+    orders.expireSession.mockReset();
+    orders.clearCart.mockReset();
+
+    orders.createPendingOrder.mockResolvedValue({
+      id: "o1",
+      items: [],
+      shipping: 0,
+    });
+    orders.createCheckoutSession.mockResolvedValue({
+      id: "cs_test_123",
+      url: "https://checkout.stripe.com/test",
+    });
+  });
+
+  afterEach(() => vi.unstubAllEnvs());
+
+  it("saves the payment reference before redirecting", async () => {
+    await expect(placeOrder("demo", "de", {}, form()))
+      .rejects.toThrow("redirect https://checkout.stripe.com/test");
+
+    expect(orders.orderUpdate).toHaveBeenCalledWith({
+      where: { id: "o1" },
+      data: {
+        paymentProvider: "stripe",
+        paymentRef: "cs_test_123",
+      },
+    });
+    expect(orders.clearCart).toHaveBeenCalledOnce();
+    expect(orders.cancelPendingOrder).not.toHaveBeenCalled();
+  });
+
+  it("expires the Stripe session before cancelling on database failure", async () => {
+    orders.orderUpdate.mockRejectedValue(new Error("Neon unavailable"));
+
+    await expect(placeOrder("demo", "de", {}, form()))
+      .rejects.toThrow("Neon unavailable");
+
+    expect(orders.expireSession).toHaveBeenCalledExactlyOnceWith("cs_test_123");
+    expect(orders.cancelPendingOrder).toHaveBeenCalledExactlyOnceWith("o1");
+    expect(orders.expireSession.mock.invocationCallOrder[0])
+      .toBeLessThan(orders.cancelPendingOrder.mock.invocationCallOrder[0]);
+    expect(orders.clearCart).not.toHaveBeenCalled();
+  });
+
+  it("does not cancel the order if Stripe session expiration fails", async () => {
+    orders.orderUpdate.mockRejectedValue(new Error("Neon unavailable"));
+    orders.expireSession.mockRejectedValue(new Error("Stripe unavailable"));
+
+    await expect(placeOrder("demo", "de", {}, form()))
+      .rejects.toThrow("Payment reference could not be saved and Stripe session expiration failed");
+
+    expect(orders.cancelPendingOrder).not.toHaveBeenCalled();
+    expect(orders.clearCart).not.toHaveBeenCalled();
   });
 });

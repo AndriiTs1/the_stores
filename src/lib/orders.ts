@@ -83,7 +83,13 @@ export async function createPendingOrder(input: {
 
 export async function markOrderPaid(orderId: string, provider: string, paymentRef: string) {
   return db.order.updateMany({
-    where: { id: orderId, status: "PENDING" },
+    where: {
+      id: orderId,
+      status: "PENDING",
+      ...(provider === "stripe"
+        ? { paymentProvider: "stripe", paymentRef }
+        : {}),
+    },
     data: { status: "PAID", paymentProvider: provider, paymentRef, paidAt: new Date() },
   });
 }
@@ -93,9 +99,17 @@ export async function cancelPendingOrder(orderId: string) {
   await db.$transaction(async (tx) => {
     const order = await tx.order.findUnique({ where: { id: orderId }, include: { items: true } });
     if (!order || order.status !== "PENDING") return;
+
+    // Only one concurrent operation can transition this order from PENDING.
+    const claimed = await tx.order.updateMany({
+      where: { id: orderId, status: "PENDING" },
+      data: { status: "CANCELLED" },
+    });
+    if (claimed.count !== 1) return;
+
+    // Release stock only after successfully claiming the cancellation.
     for (const item of order.items) {
       if (item.variantId) await releaseStock(tx, order.storeId, item.variantId, item.quantity);
     }
-    await tx.order.update({ where: { id: orderId }, data: { status: "CANCELLED" } });
   });
 }
