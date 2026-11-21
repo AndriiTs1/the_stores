@@ -38,11 +38,9 @@ export function proxy(req: NextRequest) {
     rewritePath = `/s/${encodeURIComponent(site)}${pathname === "/" ? "" : pathname}`;
   }
 
-  // Store admin and the internal /platform area: HTTP Basic auth until real staff login is built.
+  // Store admin retains HTTP Basic auth; /platform uses Better Auth and platform roles.
   const storePath = rewritePath ? pathname : pathname.replace(/^\/s\/[^/]+/, "");
-  const isProtected = site
-    ? storePath.startsWith("/admin")
-    : pathname === "/platform" || pathname.startsWith("/platform/");
+  const isProtected = Boolean(site) && storePath.startsWith("/admin");
   if (isProtected && !isAdminAuthorized(req.headers.get("authorization"))) {
     return new NextResponse("Authentication required", {
       status: 401,

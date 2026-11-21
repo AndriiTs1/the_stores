@@ -1,19 +1,12 @@
 import Link from "next/link";
-import { headers } from "next/headers";
-import { notFound, redirect } from "next/navigation";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
-import { isAdminAuthorized } from "@/lib/admin-auth";
 import { getCurrentUser, requirePlatformRole } from "@/lib/authorization";
 
 export const metadata = { title: "Stores" };
 
-/**
- * Internal list of all stores. The proxy asks for the admin password; the page checks again,
- * so it never relies on the proxy alone.
- * TODO(phase 1): platform-operator role via StaffUser + StoreMembership instead of ADMIN_PASSWORD.
- */
+/** Internal store list protected by Better Auth and platform roles. */
 export default async function PlatformStores() {
-  if (!isAdminAuthorized((await headers()).get("authorization"))) notFound();
 
   const user = await getCurrentUser();
   if (!user) redirect("/login");
