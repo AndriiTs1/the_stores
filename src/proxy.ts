@@ -1,5 +1,4 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { isAdminAuthorized } from "@/lib/admin-auth";
 import { isLocale } from "@/lib/i18n";
 import { DEFAULT_STORE_SLUG, rootHosts } from "@/lib/platform";
 
@@ -36,16 +35,6 @@ export function proxy(req: NextRequest) {
       ? host.slice(0, -(ROOT_DOMAIN.length + 1))
       : host.split(":")[0]; // custom domain
     rewritePath = `/s/${encodeURIComponent(site)}${pathname === "/" ? "" : pathname}`;
-  }
-
-  // Store admin retains HTTP Basic auth; /platform uses Better Auth and platform roles.
-  const storePath = rewritePath ? pathname : pathname.replace(/^\/s\/[^/]+/, "");
-  const isProtected = Boolean(site) && storePath.startsWith("/admin");
-  if (isProtected && !isAdminAuthorized(req.headers.get("authorization"))) {
-    return new NextResponse("Authentication required", {
-      status: 401,
-      headers: { "WWW-Authenticate": 'Basic realm="Shop admin"' },
-    });
   }
 
   // The platform has no home page of its own: / and /<locale> open the default store.
