@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { HomeBanner } from "@/components/home-banner";
+import { LineSwitcher } from "@/components/line-switcher";
+import { Suspense } from "react";
 import { StableText } from "@/components/stable-text";
 import { gridLabels, ProductGrid } from "@/components/product-grid";
 import { getProductCards, itemLimit, moreHref } from "@/lib/catalog";
@@ -54,7 +56,113 @@ export default async function StoreHome({ params, searchParams }: PageProps<"/s/
           cta={<StableText text={d.discover} variants={dictVariants("discover", store.locales)} />}
         />
       )}
-      {/* scroll-mt: the sticky header (two rows on phones) must not cover the heading after the jump. */}
+      {/* THE STORES experience — compact mobile layout. */}
+      <div className="mb-6 md:hidden">
+        <div className="mb-2">
+          <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] text-neutral-600">
+            {d.heroEyebrow}
+          </p>
+          <p className="whitespace-pre-line font-display text-[25px] font-bold leading-[1.08] tracking-tight text-neutral-950">
+            {d.heroTitle}
+          </p>
+          <p className="mt-2 max-w-[350px] text-[13px] leading-5 text-neutral-600">
+            {d.heroDescription}
+          </p>
+        </div>
+
+        <div className="mb-2">
+          <Suspense>
+            <LineSwitcher
+              tabs={(await storeLines(store.id)).map((id) => ({
+                id,
+                label: {
+                  NEW: d.lineNew,
+                  OUTLET: d.lineOutlet,
+                  PRELOVED: d.lineSecondStory,
+                }[id],
+              }))}
+              home={`${base}/${locale}`}
+              label={d.lines}
+              afterBanner
+            />
+          </Suspense>
+        </div>
+
+        <div className="relative aspect-[4/5] overflow-hidden rounded-lg bg-[#e8d5cb]">
+          <Image
+            src="/images/hero/virtual-styling-mobile.png"
+            alt="Digital fashion mannequin wearing a black jacket, cream sweater, jeans and sneakers"
+            fill
+            priority
+            sizes="(max-width: 768px) 100vw, 1200px"
+            className="object-cover object-center"
+          />
+        </div>
+      </div>
+
+      {/* THE STORES experience — desktop layout unchanged. */}
+      <div className="relative mb-8 hidden aspect-[2/1] w-full overflow-hidden rounded-lg bg-[#e8d5cb] md:mb-12 md:block lg:aspect-[11/5]">
+        <Image
+          src="/images/hero/virtual-styling.png"
+          alt="Digital fashion mannequin wearing a black jacket, cream sweater, jeans and sneakers"
+          fill
+          priority
+          sizes="(max-width: 768px) 100vw, 1200px"
+          className="object-cover object-[center_40%]"
+        />
+        <div className="absolute inset-0 hidden items-center md:flex">
+          <div className="w-[42%] pl-8 lg:pl-12">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.22em] text-neutral-700">
+              {d.heroEyebrow}
+            </p>
+            <p className="whitespace-pre-line font-display text-4xl font-bold leading-[1.08] tracking-tight text-neutral-950 lg:text-[44px] xl:text-[52px]">
+              {d.heroTitle}
+            </p>
+            <p className="mt-5 max-w-[350px] text-sm leading-6 text-neutral-700 lg:text-base">
+              {d.heroDescription}
+            </p>
+
+            <div className="mt-6 hidden xl:block">
+              <Suspense>
+                <LineSwitcher
+                  tabs={(await storeLines(store.id)).map((id) => ({
+                    id,
+                    label: {
+                      NEW: d.lineNew,
+                      OUTLET: d.lineOutlet,
+                      PRELOVED: d.lineSecondStory,
+                    }[id],
+                  }))}
+                  home={`${base}/${locale}`}
+                  label={d.lines}
+                  afterBanner
+                />
+              </Suspense>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+      <div className="-mt-4 mb-6 hidden md:block xl:hidden">
+        <Suspense>
+          <LineSwitcher
+            tabs={(await storeLines(store.id)).map((id) => ({
+              id,
+              label: {
+                NEW: d.lineNew,
+                OUTLET: d.lineOutlet,
+                PRELOVED: d.lineSecondStory,
+              }[id],
+            }))}
+            home={`${base}/${locale}`}
+            label={d.lines}
+            afterBanner
+          />
+        </Suspense>
+      </div>
+
+{/* scroll-mt: the sticky header (two rows on phones) must not cover the heading after the jump. */}
       <section id="selection" aria-labelledby="selection-title" className="scroll-mt-32 md:scroll-mt-24">
         <div className="mb-4 flex items-baseline justify-between gap-4">
           <h2 id="selection-title" className="min-w-0 text-xl font-bold sm:text-2xl">

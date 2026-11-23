@@ -29,7 +29,7 @@ export function SellHeaderLink({ href, label, ariaLabel }: { href: string; label
     <Link
       href={href}
       aria-label={ariaLabel}
-      className="hidden h-10 shrink-0 items-center gap-1.5 rounded-md border border-[#d6d6d2] px-3.5 text-sm font-medium text-foreground transition-[border-color,background-color] hover:border-meta hover:bg-field md:inline-flex"
+      className="hidden h-[30px] shrink-0 items-center gap-0 rounded-md xl:gap-1 border border-[#d6d6d2] px-2 text-xs font-medium text-foreground transition-[border-color,background-color] hover:border-meta hover:bg-field md:inline-flex xl:h-10 xl:gap-1.5 xl:px-3.5 xl:text-sm"
     >
       <PlusIcon aria-hidden size={18} />
       {label}

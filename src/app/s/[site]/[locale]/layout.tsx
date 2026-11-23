@@ -89,20 +89,20 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
             {/* Phone: logo and cart, the search on a second row (navigation is the bottom bar). From md the navigation
                 and languages join the first row; from lg the search too. The 1px bottom line is an inset shadow. */}
             <header className="sticky top-0 z-40 bg-background shadow-[inset_0_-1px_0_var(--line)]">
-              <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-2 py-2 lg:h-[72px] lg:flex-nowrap lg:gap-x-6 lg:py-0">
+              <div className="container-page flex flex-wrap items-center gap-x-3 gap-y-2 py-2 md:grid md:grid-cols-2 xl:flex xl:h-[72px] xl:flex-nowrap xl:gap-x-6 xl:py-0">
                 {/* Never truncated: shrinks by breakpoint and wraps to at most two lines on small phones. As wide as
                     the name (the focus ring hugs it); the cart is pushed right by its group's ml-auto. */}
                 <HomeLink
                   href={`${base}/${locale}`}
                   translate="no"
-                  className="min-w-0 break-words rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg lg:text-xl"
+                  className="min-w-0 break-words md:whitespace-nowrap rounded font-display text-base font-bold uppercase leading-tight tracking-tight sm:text-lg lg:text-xl"
                 >
                   {store.name}
                 </HomeLink>
                 <StoreNav
                   items={nav}
                   label={d.mainNav}
-                  className="hidden shrink-0 gap-4 md:flex lg:gap-5"
+                  className="hidden shrink-0 gap-4 md:col-start-2 md:row-start-2 md:grid md:w-full md:grid-cols-4 md:justify-items-center xl:order-none xl:w-auto xl:flex-none xl:justify-start xl:gap-5"
                   // Current item: dark text with a 2px underline in its own colour (red for Sale); hover a thin one.
                   // Every item is semibold already, so marking one never changes its width. The underline is set on
                   // the label's spans too (**:): a translated label is an inline grid (StableText), which a link's
@@ -112,11 +112,11 @@ export default async function StorefrontLayout({ children, params }: LayoutProps
                 <SearchForm
                   action={`${base}/${locale}/search`}
                   labels={{ placeholder: d.searchPlaceholder, submit: d.navSearch }}
-                  className="order-last w-full lg:order-none lg:ml-auto lg:w-auto lg:max-w-sm lg:flex-1"
+                  className="order-last w-full md:col-start-1 md:row-start-2 md:w-full md:min-w-0 xl:order-none xl:ml-auto xl:max-w-sm"
                 />
-                <div className="ml-auto flex shrink-0 items-center gap-2 lg:ml-0">
+                <div className="ml-auto flex shrink-0 items-center gap-2 md:col-start-2 md:row-start-1 xl:ml-0">
                   {/* From md the languages sit here; on phones they are on the account screen. */}
-                  <div className="hidden md:block">
+                  <div className="hidden md:block lg:block">
                     <Suspense fallback={<LanguageButtonsFallback locales={store.locales} current={locale} base={base} />}>
                       <LanguageButtons locales={store.locales} current={locale} base={base} />
                     </Suspense>

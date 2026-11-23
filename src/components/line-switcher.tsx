@@ -19,10 +19,12 @@ function isListing(pathname: string, home: string) {
  * products are shown, and only on the home page and listings (not on a product, the cart or the wishlist).
  * «Second Story» is a name: translate="no".
  */
-export function LineSwitcher({ tabs, home, label }: { tabs: LineTab[]; home: string; label: string }) {
+export function LineSwitcher({ tabs, home, label, afterBanner = false }: { tabs: LineTab[]; home: string; label: string; afterBanner?: boolean }) {
   const pathname = usePathname();
   const params = useSearchParams();
   if (tabs.length < 2 || !isListing(pathname, home)) return null;
+  if (pathname === home && !afterBanner) return null;
+  if (pathname !== home && afterBanner) return null;
   const current = resolveLine(
     parseLine(params.get("line")),
     tabs.map((t) => t.id),
@@ -30,20 +32,37 @@ export function LineSwitcher({ tabs, home, label }: { tabs: LineTab[]; home: str
   const q = params.get("q");
   const href = (line: LineId) => withLine(q ? `${pathname}?q=${encodeURIComponent(q)}` : pathname, line);
   return (
-    <nav aria-label={label} className="container-page mt-3 md:mt-6">
-      <ul className="grid w-full auto-cols-fr grid-flow-col rounded-full bg-field p-1 md:inline-grid md:w-auto">
-        {tabs.map((t) => {
+    <nav aria-label={label} className={afterBanner ? "w-full rounded-lg md:max-w-none xl:max-w-[420px] border border-white/70 bg-white/90 p-1 shadow-sm" : "container-page mt-2"}>
+      <ul className={afterBanner ? "flex w-full items-center gap-1" : "flex w-fit items-center justify-start gap-5 sm:gap-7"}>
+        {[...tabs].sort((a, b) => {
+          const order = { NEW: 0, OUTLET: 1, PRELOVED: 2 };
+          return order[a.id] - order[b.id];
+        }).map((t) => {
           const active = t.id === current;
           return (
-            <li key={t.id} className="flex">
+            <li key={t.id} className={afterBanner ? "min-w-0 flex-1" : undefined}>
               <Link
                 href={href(t.id)}
                 scroll={false}
+                onClick={afterBanner ? () => {
+                  document.getElementById("selection")?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                } : undefined}
                 aria-current={active ? "page" : undefined}
                 translate={t.id === "PRELOVED" ? "no" : undefined}
-                className={`flex h-9 w-full items-center justify-center whitespace-nowrap rounded-full px-4 text-sm text-foreground transition-[background-color,box-shadow] md:px-6 ${
-                  active ? "bg-background font-semibold shadow-[0_1px_3px_rgb(17_17_17/0.15)]" : "font-medium hover:bg-background/60"
-                }`}
+                className={`${afterBanner
+                  ? `flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-md px-2 text-sm transition-colors ${
+                      active
+                        ? "bg-neutral-950 font-semibold text-white"
+                        : "font-medium text-neutral-700 hover:bg-neutral-100"
+                    }`
+                  : `inline-flex min-h-9 items-center justify-center whitespace-nowrap border-b-2 px-1 text-sm transition-colors md:px-2 ${
+                      active
+                    ? "border-[#D6092F] font-semibold text-foreground"
+                    : "border-transparent font-medium text-muted-foreground hover:text-foreground"
+                }`}`}
               >
                 {t.label}
               </Link>

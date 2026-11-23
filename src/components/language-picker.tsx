@@ -24,7 +24,7 @@ function useLocaleHref(base: string) {
  * a 2px red line under the letters, no circle or plate; the others grey, dark on hover or press. 44×44 tap area.
  */
 const languageClass = (selected: boolean) =>
-  `inline-flex size-11 items-center justify-center rounded text-[13px] uppercase ${
+  `inline-flex size-11 items-center justify-center rounded text-[13px] uppercase md:w-9 lg:w-11 ${
     selected
       ? "font-bold text-accent underline decoration-2 underline-offset-[6px]"
       : "font-medium text-meta hover:text-foreground active:text-foreground"
